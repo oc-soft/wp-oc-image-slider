@@ -1,0 +1,918 @@
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform' version '1.6.21'
+    id 'io.miret.etienne.sass' version '1.1.2'
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+String.metaClass.md5 = {
+    def md = java.security.MessageDigest.getInstance("MD5")
+    md.digest(getBytes('UTF-8')).encodeHex().toString()
+}
+
+
+
+/**
+ * create kotlin wrapper package name
+ */
+String kotlinw(String target, String version) {
+    return "org.jetbrains.kotlin-wrappers:kotlin-$target:$version"
+}
+
+
+
+
+ext.kotlinWrapperVersion = '18.0.0-pre.328-kotlin-1.6.20'
+
+/**
+ * snake to camel case
+ */
+String.metaClass.snakeToCamel = {
+
+   replaceAll('(_|-)([a-z])') { it[2].toUpperCase() }
+}
+
+ext.appNames = [
+     'main': [
+        compile: [ 'js' ],
+        'js-name': project.name,
+        'out-name': "${project.name}"
+    ],
+ 
+    'editor': [
+        'compile': ['js'],
+        'js-name': 'editor',
+        'out-name': "${project.name}-editor"
+    ]
+]
+
+ext.siteSetting = [
+    targetDirectory: "${project.name}"
+]
+
+ext.webpackMode = 'development'
+ext.webpackSetting = [:]
+ext.webpackSetting.gradleBuildJs= 'gradle-build.js'
+ext.webpackSetting.gradleBuildPath =
+    file("webpack.config.d/00_${webpackSetting.gradleBuildJs}")
+
+ext.browserClass = 
+    org.jetbrains.kotlin.gradle.targets.js.subtargets.KotlinBrowserJs 
+
+ext.dceDir = browserClass.DCE_DIR
+ext.dceDevDir = browserClass.DCE_DEV_DIR
+
+
+
+/**
+ * get application names without default entry
+ */
+def getAppNamesWithoutDefault() {
+    def result = [:]
+    appNames.each {
+        key, value ->
+        if (key != 'main') {
+            result.put(key, value)
+        }
+    }
+    return result
+}
+
+def createCompilation(
+    def compilations,
+    def kind) {
+    appNamesWithoutDefault.each {
+        key, value ->
+        if (value.compile.contains(kind)) {
+            compilations.create(key.snakeToCamel())
+        }
+    }
+}
+
+kotlin {
+    js {
+        createCompilation(compilations, 'js')
+        browser {
+            webpackTask {
+                output.libraryTarget = 'umd'
+            }
+        }
+    }
+
+    sourceSets {
+        jsCommon {
+            dependencies {
+                implementation kotlin('stdlib-js')
+                implementation kotlinw('extensions', 
+                    '1.0.1-pre.328-kotlin-1.6.20')
+                implementation kotlinw('react-core', kotlinWrapperVersion)
+                implementation kotlinw('react', kotlinWrapperVersion)
+                implementation kotlinw('react-dom', kotlinWrapperVersion)
+                implementation npm('@wordpress/element', '>=4.2.1')
+
+                implementation npm('@wordpress/primitives', '>=3.2.1')
+                implementation npm('@wordpress/blocks', '>=11.3.1')
+                implementation npm('@wordpress/block-editor', '>=8.3.1')
+                implementation npm('@wordpress/block-library', '>=7.1.1')
+                implementation npm('@wordpress/compose', '>=5.2.1')
+                implementation npm('@wordpress/i18n', '>=4.4.1')
+                implementation npm('@wordpress/components', '>=19.6.1')
+
+                implementation npm('react', '>=18.0.0')
+                implementation npm('react-dom', '>=18.0.0')
+            }
+        }
+        jsMain {
+            dependsOn jsCommon 
+
+            dependencies {
+                implementation project(':oc-slide-image')
+            }
+        }
+
+        jsEditor {
+            dependsOn jsCommon
+        }
+    }
+}
+
+/** create npm project */
+def createNpmProject(def compilation) {
+    def result = null
+    result = new org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject(
+        compilation)
+    return result
+}
+
+/**
+ * kotlin compiler classpath
+ */
+def getCompilerClasspath() {
+    def result = project.objects.fileCollection()
+    def compilerClassConfigName = 'kotlinCompilerClasspath'
+    result.setFrom(
+        project.configurations.named(compilerClassConfigName))
+    return result 
+}
+
+
+/**
+ * kotlin js path
+ */
+def getKotlinJsPath() {
+    return  rootProject.file('build/js/node_modules/kotlin/kotlin.js')
+}
+
+/**
+ * run javascript deadcode elimination
+ */
+def runJsDce(
+    boolean devMode,
+    def compilation,
+    def dceDir) {
+    def npmProject = createNpmProject(compilation)
+    def destDir = new File(npmProject.dir, dceDir)
+    def source = compilation.compileKotlinTask.outputFile
+    javaexec {
+        main = 'org.jetbrains.kotlin.cli.js.dce.K2JSDce'
+        classpath = compilerClasspath 
+        args '-output-dir', destDir
+        if (devMode) {
+            args '-dev-mode' 
+        }
+        args source, kotlinJsPath
+    } 
+}
+
+/**
+ * get javascript compilation
+ */
+def getJsCompilation(String compilationName) {
+
+    def result = null
+    kotlin.js {
+        result = compilations[compilationName.snakeToCamel()]
+    }
+        
+    return result
+}
+
+def getDceOutput(String compilationName, boolean dev) {
+    def compilation = getJsCompilation(compilationName)
+    def kotlinTask = compilation.compileKotlinTask
+    def dceDir0
+ 
+    if (dev) {
+        dceDir0 = dceDevDir
+    } else {
+        dceDir0 = dceDir
+    }
+    def npmProject = createNpmProject(compilation)
+    def destDir = new File(npmProject.dir, dceDir0)
+ 
+    return new File(destDir, kotlinTask.outputFile.name)
+}
+
+
+appNamesWithoutDefault.forEach {
+    key, value ->
+    if (value.compile.contains('js')) {
+        def jsCompilation = getJsCompilation(key)
+        tasks.create(
+            "${key.snakeToCamel()}Dce") {
+            dependsOn jsCompilation.compileKotlinTask
+
+            jsBrowserProductionWebpack.dependsOn it 
+            doLast {
+                runJsDce(false, jsCompilation, dceDir)
+            }
+        }
+        jsBrowserProductionWebpack.inputs.files getDceOutput(
+            key.snakeToCamel(), false)
+
+        tasks.create(
+            "${key.snakeToCamel()}DceDev") {
+            dependsOn jsCompilation.compileKotlinTask
+            jsBrowserDevelopmentWebpack.dependsOn it
+            doLast {
+                runJsDce(true, jsCompilation, dceDevDir)
+            }
+        }
+        jsBrowserDevelopmentWebpack.inputs.files getDceOutput(
+            key.snakeToCamel(), true)
+    }
+}
+
+tasks.getByPath('jsBrowserProductionWebpack').mode = 'production'
+
+if (hasProperty("productionCompile")) {
+    kotlin.js {
+        compilations.each {
+            it.kotlinOptions {
+                sourceMap = false
+            }
+        }
+    }
+}
+
+/**
+ * get webpack task name
+ */
+def getWebpackTaskName() {
+    return "jsBrowser${ext.webpackMode.capitalize()}Webpack"
+}
+
+/**
+ * get distribution directory
+ */
+def getDistributionDir() {
+    def result = null
+    kotlin {
+        js {
+            browser {
+                distribution {
+                    result = directory
+                }
+            }
+        }
+    }
+    return result
+}
+
+sass {
+    version = '1.49.0'
+}
+
+
+
+compileSass {
+    def destDir = "${buildDir}/${siteSetting['targetDirectory']}/css"
+
+    sourceDir = file("src/style")
+    outputDir = file(destDir)
+}
+
+
+/**
+ * get webpack mode
+ */
+def getWebpackMode() {
+    def result = null
+    kotlin {
+        js {
+            browser {
+                commonWebpackConfig {
+                    result = mode
+                }
+            }
+        }
+    }
+    return result
+}
+
+/**
+ * create compiled javascript entry
+ */
+def createJsEntries(String mode) {
+    appNamesWithoutDefault.findAll {
+        key, value ->
+        value.compile.contains('js')
+    }.collectEntries { 
+        key, value ->
+        def compilationName = key.snakeToCamel()
+        [ key, getDceOutput(compilationName, mode == 'development') ]
+    } 
+}
+
+task webpackGradleBuild {
+    doLast {
+        def buildSetting = [:] 
+        def jsEntries = [:] 
+        ['development', 'production'].each {
+            jsEntries[it]  = createJsEntries(it)
+        }        
+        buildSetting['js'] = jsEntries 
+        buildSetting['mainProgramName'] = appNames['main']['js-name']
+        def tmp = new groovy.text.StreamingTemplateEngine()
+        def gradleBuildSrc = """
+class GradleBuild {
+  static get config() {
+    const result = <% out.print config %>;
+    return result;
+  }
+}"""
+        tmp = tmp.createTemplate(gradleBuildSrc) 
+        def jsonGenerator = new groovy.json.JsonGenerator.Options()
+            .addConverter(File.class) { it.toString() }
+            .build()
+            
+        def buildConfig = groovy.json.JsonOutput.prettyPrint(
+            jsonGenerator.toJson(buildSetting))
+        def gradleBuildContents = tmp.make([
+            config: buildConfig
+        ])
+        webpackSetting.gradleBuildPath.text = gradleBuildContents
+    }
+}
+
+
+jsBrowserDevelopmentWebpack.dependsOn webpackGradleBuild
+jsBrowserProductionWebpack.dependsOn webpackGradleBuild
+
+/**
+ * copy javascript into site image directory
+ */
+task copyJsIntoSiteImage {
+    def destDir = "${buildDir}/${siteSetting['targetDirectory']}/js"
+    def srcDir = getDistributionDir()    
+
+    doLast {
+        copy {
+            from srcDir
+            into destDir
+            include '**/*.js'
+            include '**/*.map'
+        }
+    }
+}
+
+/**
+ * generate pot file from source
+ */
+task xgettext {
+
+    
+    def potSources = []
+
+    appNames.each {
+        key, value ->
+
+        if (value.compile.contains('js')) {
+            def compilationTask = getJsCompilation(key).compileKotlinTask
+            def outFile = compilationTask.outputFile
+
+            dependsOn compilationTask
+            potSources << [ outFile, "js/${value['out-name']}.js" ]
+
+        }
+    }
+        
+
+    def srcTree = fileTree('src') {
+        include 'jsMain/**/*.kt'
+        include 'jsCommon/**/*.kt'
+        include 'jsEditor/**/*.kt'
+        include 'php/**/*.php'
+        include 'php/**/*.sh'
+    } 
+    def output = file('src/i18n/oc-slide.pot')
+    outputs.files output
+    srcTree.forEach {
+        inputs.files it
+        potSources << [ it ]
+    }
+
+    doLast {
+        exec {
+            executable = 'xgettext'
+            args '-o', output 
+            args '-k__'
+            potSources.each {
+                args it[0]
+            }
+            println commandLine
+        }
+    }
+    // this procedure makes pot file to be parsable by wp i18n make-json
+    doLast {
+        def outContents = output.text
+        potSources.each {
+
+            if (it.size() > 1) {
+                outContents = outContents.replace(
+                    [(it[0].toString()) : it[1]]
+                )
+            }
+        }
+        output.text = outContents
+    }
+}
+
+
+/**
+ * merge messages in pot into mesages in po
+ */
+task msgmerge {
+    description = 'merge messages in pot into mesages in po'
+
+    dependsOn xgettext
+    
+    def poFileTree = fileTree(file('src/i18n')) {
+        include '*/*.po'
+    }
+
+    poFileTree.forEach {
+        outputs.files it
+    }
+
+    def potFile = file('src/i18n/oc-slide.pot')
+    inputs.files potFile
+
+    doLast {
+        poFileTree.forEach {
+            def poFile = it
+            exec {
+                executable = 'msgmerge'
+                args '-U'
+                args poFile, potFile
+            }
+        }
+    }
+}
+
+/**
+ * create message object file
+ */
+task msgfmt {
+    description = 'create message object file'
+    dependsOn msgmerge
+
+    def poFileTree = fileTree(file('src/i18n')) {
+        include "*/*.po"
+    }
+    def ioParams = []
+    poFileTree.forEach {
+        def langName = it.parentFile.name
+        ioParams << [
+            it, 
+            file("src/i18n/oc-slide-${langName}.mo"),
+            'oc-slide',
+            langName
+        ]
+    }
+
+    ioParams.each {
+        inputs.files it[0]
+        outputs.files it[1] 
+    }
+
+    def jsFiles = []
+    appNames.each {
+        key, value ->
+        if ('js' in value.compile) {
+            def outFile = getJsCompilation(key).compileKotlinTask.outputFile
+            jsFiles << [
+                outFile,
+                value['out-name']
+            ]
+        }
+    }
+ 
+    doLast {
+        ioParams.each {
+            def inFile = it[0]
+            def outFile = it[1]
+            def domainName = it[2] 
+            def langName = it[3]
+            exec {
+                executable = 'msgfmt'
+                args '-o', outFile
+                args inFile
+            }
+
+            copy {
+                from inFile
+                into outFile.parentFile 
+                rename {
+                    "${domainName}-${langName}.po"
+                }
+            }
+            
+        
+            exec {
+                executable = 'wp'
+                args 'i18n', 'make-json'
+                args new File(outFile.parentFile, 
+                    "${domainName}-${langName}.po")
+            }
+        }
+    }
+}
+
+/**
+ * copy message object into site image
+ */
+task copyMoIntoSiteImage  {
+    description = 'copy message objects into site image'
+    dependsOn msgfmt
+    def destDir = "${buildDir}/${siteSetting['targetDirectory']}"
+    doLast {
+        copy {
+            from 'src/i18n'
+            include '*.json'
+            include '*.mo'
+            include '*.pot'    
+            into destDir
+        } 
+    } 
+}
+
+
+copyJsIntoSiteImage.dependsOn jsBrowserWebpack
+
+
+task generateIndexPhp {
+    description = 'generate index.php'
+    def srcDir = file('src/php')
+    def assetDir = file('src/assets')
+    def scriptFile = file('src/php/gen-index.sh')
+
+    def output = file('src/php/index.php')
+    inputs.dir assetDir
+    inputs.files scriptFile
+    inputs.files file('src/php/index.php.in')
+    outputs.files output
+
+    def transFileTree = fileTree('src/i18n') {
+        include '*-*-*.json'
+    }
+    transFileTree.forEach {
+        inputs.files it
+    }
+    
+    doLast {
+
+        def stream = output.newOutputStream()
+        exec {
+            executable = 'sh'
+            args scriptFile 
+            args '-s', srcDir
+            args '-a', assetDir
+            transFileTree.forEach {
+                args '-m', it.name
+            }
+            args '-j', 8
+            standardOutput = stream
+        }
+        
+        stream.close()
+    }
+    
+}
+
+
+/**
+ * copy php files into site image directory
+ */
+task copyPhpIntoSiteImage {
+   
+    def destDir = "${buildDir}/${siteSetting['targetDirectory']}"
+    def srcDir = file('src/php')
+
+    dependsOn generateIndexPhp 
+
+    doLast {
+        copy {
+            from srcDir
+            into destDir
+            include '**/*.php'
+        }
+    }
+}
+
+/**
+ * copy config directory into site image directory
+ */
+task copyConfigIntoSiteImage {
+   
+    def destDir = "${buildDir}/${siteSetting['targetDirectory']}/config"
+    def srcDir = file('src/config')
+
+    doLast {
+        copy {
+            from srcDir
+            into destDir
+            include '**/*.json'
+        }
+    }
+}
+
+
+
+/**
+ * test php
+ */
+task testPhp {
+    description = 'test php'
+
+    def testFileTree = fileTree('src/phpTest') {
+        include 'test*.php'
+        exclude 'test-runner.php'
+    }
+
+    def testRunner = 'src/phpTest/test-runner.php'
+
+    testFileTree.forEach {
+        inputs.files it
+    }
+    inputs.files testRunner
+    
+
+    doLast {
+        def tests = testFileTree.files.collect {
+            it.name.take(it.name.lastIndexOf('.'))
+        }.join(',')
+        
+
+        def inc = [
+            'src/php',
+            'src/phpTest'
+        ].join(File.pathSeparator)
+
+        exec {
+            executable = 'php'
+            args testRunner
+            args '-i', inc
+            args '-t', tests
+        }
+    }
+    
+}
+
+task archivePlugin(type: org.gradle.api.tasks.bundling.Zip) {
+    description = 'archive plugin'
+    def inputDir = "${buildDir}/${siteSetting['targetDirectory']}"
+    def outputDir = new File(buildDir, "wordpress/plugins")
+
+    exclude 'js/*.map'
+    exclude 'css/*.map'    
+
+    archiveBaseName = "${project.name}"
+    destinationDir = outputDir
+    into "${project.name}"
+    from inputDir
+}
+
+
+task generateReadMe {
+    def shScript = 'src/doc/gen-readme.sh'
+    def readmeIn = 'src/doc/readme.txt.in'
+    def readmeOut = 'src/doc/readme.txt'
+
+    inputs.files shScript, readmeIn
+    outputs.files readmeOut
+
+    doLast {
+        def stream = file(readmeOut).newOutputStream()
+        exec {
+
+            executable = 'sh'
+            args file(shScript)
+            args '-h'
+            args '-s', file(readmeIn)
+            args '-a', file('src/assets')
+            standardOutput = stream
+        }
+        stream.close()
+    }
+
+    
+}
+
+
+/**
+ * generate readme.txt 
+ */
+task generateReadme {
+    description = 'generate readme.txt for wordpress plugin'
+
+    def shScript = 'src/doc/gen-readme.sh'
+
+    def readmeIn = 'src/doc/readme.txt.in'
+    def readmeOut = 'src/doc/readme.txt'
+    def assetsDir = 'src/assets'
+
+    inputs.files shScript, readmeIn
+    inputs.dir assetsDir
+    outputs.files readmeOut
+
+    doLast {
+        def stream = file(readmeOut).newOutputStream()
+        exec {
+
+            executable = 'sh'
+            args file(shScript)
+            args '-s', file(readmeIn).parentFile
+            args '-a', file('src/assets')
+            standardOutput = stream
+        }
+        stream.close()
+    }
+}
+
+/**
+ * copy readme into site image
+ */
+task copyReadmeIntoSiteImage {
+    description = 'copy readme.txt into site image'
+
+    dependsOn generateReadme
+
+    def srcfile = file('src/doc/readme.txt')
+    def destfile = file("build/${siteSetting['targetDirectory']}/readme.txt")
+
+    inputs.files srcfile
+    outputs.files destfile
+
+    doLast {
+        copy {
+            from srcfile
+            into destfile.parentFile
+        }
+    }
+}
+
+/**
+ * copy assets into site image
+ */
+task copyAssetsIntoSiteImage {
+    description = 'copy assets into site image'
+
+    def imageNames = [
+        'enable-oc-smart-table-free-edition.png',
+        'small-width-browser-view-smart-table.png',
+        'desktop-browser-view-smart-table.png',
+        'inheritance-colors-and-styles.png',
+        'oc-smart-table-extended-menu-item.png'
+    ]
+
+    def inputFiles = fileTree('src/assets') {
+
+        imageNames.each {
+            include it
+        }
+        
+
+        include 'icon.svg' 
+        include 'icon-128x128.png'
+        include 'icon-256x256.png'
+
+        include 'banner-772x250.png'
+        include 'banner-772x250.jpg'
+        include 'banner-1544x500.png'
+        include 'banner-1544x500.jpg'
+    }
+
+    def destDir = file("build/${siteSetting['targetDirectory']}/assets")
+    inputFiles.forEach {
+        inputs.files it
+        outputs.files new File(destDir, it.name)
+    }
+
+    doLast {
+        copy {
+            inputFiles.forEach {
+                from it
+            }
+            into destDir
+             
+            imageNames.eachWithIndex {
+                name, idx ->
+                def lastIdx = name.lastIndexOf('.')
+                def ext = ''
+                if (lastIdx > 0) {
+                    ext = name.substring(lastIdx)
+                }
+                rename(name, "screenshot-${idx + 1}${ext}")
+            }
+        }
+    }
+
+}
+
+/**
+ * build site imate
+ */
+task buildSiteImage {
+
+}
+
+
+buildSiteImage.dependsOn build
+buildSiteImage.dependsOn copyPhpIntoSiteImage
+buildSiteImage.dependsOn copyJsIntoSiteImage
+buildSiteImage.dependsOn copyConfigIntoSiteImage
+buildSiteImage.dependsOn copyReadmeIntoSiteImage
+buildSiteImage.dependsOn copyAssetsIntoSiteImage
+buildSiteImage.dependsOn compileSass
+// buildSiteImage.dependsOn copyMoIntoSiteImage
+
+/**
+ * install the plugin into parent wordpress test directory
+ */
+task installPlugin {
+    description = 'install the plugin into parent wordpress test directory.'
+    dependsOn buildSiteImage
+
+    def srcDir = new File(buildDir, siteSetting['targetDirectory'])
+    def pluginDir = new File("${parent.wp.rootDir}/wp-content/plugins")
+    def destDir = new File(pluginDir, siteSetting['targetDirectory'])
+    doLast {
+        copy {
+            from srcDir
+            into destDir
+        }
+    }
+}
+
+archivePlugin.dependsOn buildSiteImage
+
+
+
+task updatePluginDir {
+    description = 'update plugin directory'
+
+    dependsOn buildSiteImage
+    doLast {
+        copy {
+            from "${buildDir}/${siteSetting['targetDirectory']}"
+            into "plugins/trunk"
+            exclude "assets"
+        }
+        copy {
+            from "${buildDir}/${siteSetting['targetDirectory']}/assets"
+            into "plugins/assets"
+        }
+    }
+}
+
+
+task codecanyonScreenshots(type: org.gradle.api.tasks.bundling.Zip) {
+    description = 'create zip archive for codecanyon screenshots'
+     
+    from 'src/assets'
+    archiveBaseName = "codecanyon-preview"
+    destinationDir = buildDir
+    include 'oc-smart-table-extended-menu-item.png'
+    include 'desktop-browser-view-smart-table.png'
+    include 'small-width-browser-view-smart-table.png'
+}
+
+/**
+ * copy archive into upload directory
+ */
+task copyArchiveIntoUploadDirectory {
+    description = 'copy archive into upload directory'
+    dependsOn archivePlugin
+
+    doLast {
+        def pluginPath = file(archivePlugin.archiveFile)
+        project.parent.copyDataIntoUploadDirectory pluginPath
+    }
+    
+}
+
+// vi: se ts=4 sw=4 et:

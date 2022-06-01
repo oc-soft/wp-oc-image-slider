@@ -1,0 +1,57 @@
+<?php
+/*
+ * Copyright 2022 oc-soft
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @PLUGIN_NAME@
+ * Plugin URI: https://oc-soft.net/en/oc-slide/
+ * @DESCRIPTION@
+ * @AUTHOR@
+ * @VERSION@
+ * Licence: Apache License 2.0
+ * Licence URL: https://www.apache.org/licenses/LICENSE-2.0
+ * Requires at least: @REQUIRES_WP@ 
+ * Requires PHP: @REQUIRES_PHP@
+ */
+
+require_once implode('/', [
+    plugin_dir_path( __FILE__), 'lib', 'oc-slide.php']);
+/**
+ * activate plugin
+ */
+function oc_slide_activate() {
+
+    OcSlide::$instance->activate();
+}
+
+/**
+ * deactivate plugin
+ */
+function oc_slide_deactivate() {
+    OcSlide::$instance->deactivate();
+}
+
+
+
+register_activation_hook(__FILE__, 'oc_slide_activate');
+register_deactivation_hook(__FILE__, 'oc_slide_deactivate');
+OcSlide::$instance->run(
+    implode('', [plugin_dir_url(__FILE__), 'js']),
+    implode('', [plugin_dir_url(__FILE__), 'css']),
+    plugin_dir_path(__FILE__),
+    plugin_dir_path(__FILE__));
+
+
+// vi: se ts=4 sw=4 et:
