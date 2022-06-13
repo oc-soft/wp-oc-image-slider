@@ -2,9 +2,11 @@
   "settings" : [
     {
       "type": "turn-page",
-      "flip-order": "forward",
       "flip-start": 1,
-      "corner-line": [[0.05, -0.05], [0.95, -0.05]],
+      "corner-line": [
+          [[0.05, -0.05], [0.95, -0.05]],
+          [[0.95, -0.05], [0.05, -0.05]]
+      ],
       "steps": 100,
       "animation": {
         "duration": 1000

@@ -59,6 +59,25 @@ class Externals {
       commonjs2: '@wordpress/components',
       amd: '@wordpress/components'
     }
+    externals['@wordpress/icons'] = {
+      root: ['wp', 'icons'],
+      commonjs: '@wordpress/icons',
+      commonjs2: '@wordpress/icons',
+      amd: '@wordpress/icons'
+    }
+    externals['@wordpress/data'] = {
+      root: ['wp', 'data'],
+      commonjs: '@wordpress/data',
+      commonjs2: '@wordpress/data',
+      amd: '@wordpress/data'
+    }
+    externals['@wordpress/hooks'] = {
+      root: ['wp', 'hooks'],
+      commonjs: '@wordpress/hooks',
+      commonjs2: '@wordpress/hooks',
+      amd: '@wordpress/hooks'
+    }
+    
     externals['react'] = {
       root: 'React',
       commonjs: 'react',
@@ -71,11 +90,7 @@ class Externals {
       commonjs2: 'react-dom',
       amd: 'react-dom'
     }
-
-
-
     config.externals = externals
-
   }
 }
 

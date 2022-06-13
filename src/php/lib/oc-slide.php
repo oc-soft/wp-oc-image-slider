@@ -30,60 +30,6 @@ class OcSlide {
     static $instance = null;
 
     /**
-     * classes parent of table
-     */
-    static $table_container_classes = [
-        'oc-slide-table'
-    ];
-    
-    /**
-     * classes for html element
-     */
-    static $table_classes = [];
-    
-
-    /**
-     * container tag for dl which replaces table row.
-     */
-    static $container_tag = 'ul';
-
-
-    /**
-     * container element tag for dl which replace table row.
-     */
-    static $container_element_tag = 'li';
-
-    /**
-     * container classes for container tag
-     */
-    static $container_classes = ['oc-smart-table-container'];
-
-    /**
-     * script handle
-     */
-    static $script_handle = 'oc-slide';
-
-    /**
-     * script handle for editor
-     */
-    static $script_editor_handle = 'oc-slide-editor';
-
-    /**
-     * javascript name
-     */
-    static $js_script_name = 'oc-slide.js';
-
-    /**
-     *  javascript editor name 
-     */
-    static $js_script_editor_name ='oc-slide-editor.js';
-
-    /**
-     * css style sheet name
-     */
-    static $css_style_name = 'oc-slide.css';
-
-    /**
      * activate plugin
      */
     function activate() {
@@ -119,68 +65,57 @@ class OcSlide {
     /**
      * setup style 
      */
-    function setup_style($css_dir) {
-        wp_register_style(self::$script_handle,
-           implode('/', [$css_dir, self::$css_style_name])); 
-        wp_enqueue_style(self::$script_handle);
+    function setup_style($css_dir, $registration) {
+        wp_enqueue_style(
+            $registration->style);
     }
  
     /**
      * setup script
      */
     function setup_script($js_dir,
-        $translations_dir) {
-
-
-        wp_register_script(self::$script_handle,
-            implode('/', [$js_dir, self::$js_script_name]),
-            [], false);
-
+        $translations_dir,
+        $registration) {
 
         wp_add_inline_script(
-            self::$script_handle,
+            $registration->script,
             $this->get_ajax_inline_script());
 
-        wp_enqueue_script(self::$script_handle);
+        wp_enqueue_script(
+            $registration->script);
 
+
+        /*
         wp_set_script_translations(
             self::$script_handle, 
             'oc-slide', 
             $translations_dir);
-
+         */
     }
 
     /**
      * setup wordpress administrator mode script
      */
     function setup_admin_script($js_dir,
-        $translations_dir) {
-        $deps = ['wp-block-library'];
-        
-        wp_register_script(self::$script_editor_handle,
-            implode('/', [$js_dir, self::$js_script_editor_name]),
-            $deps, 
-            false, true);
-
- 
+        $translations_dir, $registration) {
     }
 
     /**
      * setup block editor scripts script
      */
     function setup_block_editor_scripts($js_dir,
-        $translations_dir) {
+        $translations_dir,
+        $registration) {
 
-        wp_enqueue_script(self::$script_editor_handle);
+        wp_enqueue_script(
+            $registration->editor_script);
 
-        wp_set_script_translations(
-            self::$script_editor_handle,
-            'oc-slide', 
-            $translations_dir);
+        wp_enqueue_style(
+            $registration->editor_style);
+
+        wp_enqueue_style(
+            $registration->style);
     }
-
-
-
     
     /**
      * handle init event
@@ -191,18 +126,24 @@ class OcSlide {
         $translations_dir,
         $plugin_dir) {
 
-        add_action('wp', function() use($js_dir, $css_dir, $translations_dir) {
-            $this->setup_style($css_dir);
-            $this->setup_script($js_dir, $translations_dir);
+        $registration = register_block_type($plugin_dir);
 
+
+        add_action('wp', function() 
+            use($js_dir, $css_dir, $translations_dir, $registration) {
+            $this->setup_style($css_dir, $registration);
+            $this->setup_script($js_dir, $translations_dir, $registration);
         });
 
-        add_action('admin_init', function() use($js_dir, $translations_dir) {
-            $this->setup_admin_script($js_dir, $translations_dir);
+        add_action('admin_init', function() use(
+            $js_dir, $translations_dir, $registration) {
+            $this->setup_admin_script($js_dir, $translations_dir,
+                $registration);
         });
         add_action('enqueue_block_editor_assets', function() 
-            use($js_dir, $translations_dir) {
-            $this->setup_block_editor_scripts($js_dir, $translations_dir);
+            use($js_dir, $translations_dir, $registration) {
+            $this->setup_block_editor_scripts(
+                $js_dir, $translations_dir, $registration);
         });
 
         add_shortcode('ocslide', 
@@ -210,6 +151,7 @@ class OcSlide {
                 return OcSlideShortcode::$instance->handle_shortcode(
                     $attr, $contents, $tag, $plugin_dir);
             });
+
         OcSlideAjax::$instance->register($plugin_dir);
     }
 

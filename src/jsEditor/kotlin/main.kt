@@ -4,6 +4,7 @@ import net.oc_soft.App
 /**
  * entry point
  */
+@Suppress("UNUSED_PARAMETER")
 fun main(args: Array<String>) {
     val app = App()
 

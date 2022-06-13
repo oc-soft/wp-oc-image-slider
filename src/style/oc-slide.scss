@@ -1,0 +1,34 @@
+
+.wp-block-oc-soft-slide {
+  .paging-controller {
+    display: grid;
+
+    grid-template-columns: 30px 1fr 30px;
+
+    & > * {
+      height: 100%;
+    }
+
+    & > .command {
+      display: flex;
+      align-items: center;
+
+      &:first-child {
+        justify-content: start;
+      } 
+      &:last-child {
+        justify-content: end;
+      }
+    }
+    
+
+    svg {
+      &.forward,
+      &.backward {
+        width: 24px;
+      }
+    }
+  }
+}
+
+// vi: se ts=2 sw=2 et:

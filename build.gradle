@@ -13,6 +13,15 @@ String.metaClass.md5 = {
     md.digest(getBytes('UTF-8')).encodeHex().toString()
 }
 
+String.metaClass.stripExtension = {
+    def idx = lastIndexOf('.')
+    def result = this
+    if (idx > 0) {
+       result = take(idx) 
+    }
+    return result
+}
+
 
 
 /**
@@ -39,13 +48,58 @@ ext.appNames = [
      'main': [
         compile: [ 'js' ],
         'js-name': project.name,
-        'out-name': "${project.name}"
+        'out-name': "${project.name}",
+        'block-json-entry': 'viewScript'
     ],
  
     'editor': [
         'compile': ['js'],
         'js-name': 'editor',
-        'out-name': "${project.name}-editor"
+        'out-name': "${project.name}-editor",
+        'block-json-entry': 'editorScript'
+    ]
+]
+
+/**
+ * css setting
+ */
+ext.cssSettings = [
+    main : [
+        'out-name': "${project.name}",
+        'block-json-entry': 'style'
+    ],
+    editor: [
+        'out-name': 'editor',
+        'block-json-entry': 'editorStyle'
+    ]
+]
+
+ext.nodeModuleResolve = [
+    aliases: [
+        [
+            'name': 'oc-soft/block-editor-icon',
+            'path': file('src/assets/block-editor-icon.json')
+        ],
+        [
+            'name': 'oc-soft/block-meta',
+            'path': file('src/jsEditor/resources/block-meta.js')
+        ],
+        [
+            'name': 'oc-soft/block.json',
+            'path': file('src/assets/block.json')
+        ],
+        [
+            'name': 'oc-soft/paging',
+            'path': file('src/jsEditor/resources/paging.js')
+        ],
+        [
+            'name': 'oc-soft/paging-setting.json',
+            'path': file('src/config/paging-setting.json')
+        ],
+        [
+            'name': 'oc-soft/svg-path-d',
+            'path': file('src/jsCommon/resources/svg-path-d.js')
+        ]
     ]
 ]
 
@@ -106,11 +160,26 @@ kotlin {
         jsCommon {
             dependencies {
                 implementation kotlin('stdlib-js')
+                implementation project(':oc-slide-image')
+            }
+        }
+        jsMain {
+            dependsOn jsCommon 
+
+            dependencies {
+            }
+        }
+
+        jsEditor {
+            dependsOn jsCommon
+            dependencies {
+
                 implementation kotlinw('extensions', 
                     '1.0.1-pre.328-kotlin-1.6.20')
                 implementation kotlinw('react-core', kotlinWrapperVersion)
                 implementation kotlinw('react', kotlinWrapperVersion)
                 implementation kotlinw('react-dom', kotlinWrapperVersion)
+
                 implementation npm('@wordpress/element', '>=4.2.1')
 
                 implementation npm('@wordpress/primitives', '>=3.2.1')
@@ -123,18 +192,9 @@ kotlin {
 
                 implementation npm('react', '>=18.0.0')
                 implementation npm('react-dom', '>=18.0.0')
-            }
-        }
-        jsMain {
-            dependsOn jsCommon 
+                implementation project(':kwp')
 
-            dependencies {
-                implementation project(':oc-slide-image')
             }
-        }
-
-        jsEditor {
-            dependsOn jsCommon
         }
     }
 }
@@ -166,6 +226,48 @@ def getKotlinJsPath() {
     return  rootProject.file('build/js/node_modules/kotlin/kotlin.js')
 }
 
+
+/**
+ * kotlin extensions 
+ */
+def getKotlinExtensionsPath() {
+    return rootProject.file(
+        'build/js/node_modules/kotlin-extensions/kotlin-extensions.js')
+}
+
+/**
+ * kotlin csstype 
+ */
+def getKotlinCsstypePath() {
+    return rootProject.file(
+        'build/js/node_modules/kotlin-csstype/kotlin-csstype.js')
+}
+
+/**
+ * kotlin react core
+ */
+def getKotlinReactCorePath() {
+    return rootProject.file(
+        'build/js/node_modules/kotlin-react-core/kotlin-react-core.js')
+}
+
+/**
+ * kotlin react dom 
+ */
+def getKotlinReactDomPath() {
+    return rootProject.file(
+        'build/js/node_modules/kotlin-react-dom/kotlin-react-dom.js')
+}
+
+/**
+ * kotlin react 
+ */
+def getKotlinReactPath() {
+    return rootProject.file(
+        'build/js/node_modules/kotlin-react/kotlin-react.js')
+}
+
+
 /**
  * run javascript deadcode elimination
  */
@@ -176,6 +278,15 @@ def runJsDce(
     def npmProject = createNpmProject(compilation)
     def destDir = new File(npmProject.dir, dceDir)
     def source = compilation.compileKotlinTask.outputFile
+
+    def dceSources = [
+        kotlinJsPath,
+        kotlinExtensionsPath, 
+        kotlinCsstypePath,
+        kotlinReactCorePath,
+        kotlinReactDomPath,
+        kotlinReactPath
+    ]
     javaexec {
         main = 'org.jetbrains.kotlin.cli.js.dce.K2JSDce'
         classpath = compilerClasspath 
@@ -183,7 +294,10 @@ def runJsDce(
         if (devMode) {
             args '-dev-mode' 
         }
-        args source, kotlinJsPath
+        args source
+        dceSources.each {
+            args it
+        }
     } 
 }
 
@@ -313,6 +427,8 @@ def getWebpackMode() {
     return result
 }
 
+
+
 /**
  * create compiled javascript entry
  */
@@ -336,6 +452,21 @@ task webpackGradleBuild {
         }        
         buildSetting['js'] = jsEntries 
         buildSetting['mainProgramName'] = appNames['main']['js-name']
+
+
+        def aliases = []
+        nodeModuleResolve['aliases'].each {
+            aliases << it
+        }
+        readSvgPathDMapList().each {
+            aliases << it
+        }
+
+        buildSetting['resolve'] = [
+            aliases: aliases
+        ]
+
+
         def tmp = new groovy.text.StreamingTemplateEngine()
         def gradleBuildSrc = """
 class GradleBuild {
@@ -362,6 +493,83 @@ class GradleBuild {
 jsBrowserDevelopmentWebpack.dependsOn webpackGradleBuild
 jsBrowserProductionWebpack.dependsOn webpackGradleBuild
 
+
+/**
+ * create block json file
+ */
+task generateBlockJson {
+    description = 'create block.json file'
+
+    def inputFile = file('src/assets/block.json.in') 
+    def outputFile = file('src/assets/block.json')
+
+    inputs.file inputFile
+    outputs.file outputFile
+    
+    doLast {
+        
+        def slurper = new groovy.json.JsonSlurper()
+        def block = slurper.parseText(inputFile.text)
+        appNames.each {
+            key, value ->
+            if (value.containsKey('block-json-entry')) {
+                block[value['block-json-entry']] = 
+                    "file:js/${value['out-name']}.js"
+            } 
+        }
+        cssSettings.each {
+            key, value ->
+            if (value.containsKey('block-json-entry')) {
+                block[value['block-json-entry']] = 
+                    "file:css/${value['out-name']}.css"
+            }
+        }
+        def jsonGenerator = new groovy.json.JsonGenerator.Options()
+            .build()
+            
+        def block1 = groovy.json.JsonOutput.prettyPrint(
+            jsonGenerator.toJson(block))
+        outputFile.text = block1
+    }
+}
+
+jsBrowserDevelopmentWebpack.dependsOn generateBlockJson
+jsBrowserProductionWebpack.dependsOn generateBlockJson
+
+
+/**
+ * copy php assets file into site image directory
+ */
+task copyJsAssetsPhpIntoSiteImage {
+    def destDir = "${buildDir}/${siteSetting['targetDirectory']}/js"
+    def srcFiles = [
+        [
+            file("src/assets/main.asset.php"),
+            "${appNames.main['out-name']}.asset.php"
+        ],
+        [
+            file("src/assets/editor.asset.php"),
+            "${appNames.editor['out-name']}.asset.php"
+        ]
+    ]
+    srcFiles.each {
+        outputs.file new File(destDir, it[1])
+        inputs.file it[0]
+    } 
+
+    doLast {
+        copy {
+            into destDir
+            srcFiles.each {
+                from it[0].parentFile
+                include it[0].name
+                rename it[0].name, it[1]
+            }
+        }
+    }
+}
+
+
 /**
  * copy javascript into site image directory
  */
@@ -378,6 +586,7 @@ task copyJsIntoSiteImage {
         }
     }
 }
+
 
 /**
  * generate pot file from source
@@ -396,7 +605,6 @@ task xgettext {
 
             dependsOn compilationTask
             potSources << [ outFile, "js/${value['out-name']}.js" ]
-
         }
     }
         
@@ -561,7 +769,9 @@ task copyMoIntoSiteImage  {
 }
 
 
-copyJsIntoSiteImage.dependsOn jsBrowserWebpack
+// copyJsIntoSiteImage.dependsOn jsBrowserWebpack
+copyJsIntoSiteImage.dependsOn jsBrowserDevelopmentWebpack
+
 
 
 task generateIndexPhp {
@@ -830,7 +1040,27 @@ task copyAssetsIntoSiteImage {
             }
         }
     }
+}
 
+/**
+ * copy the block setting file(block.json) into site image
+ */
+task copyBlockJsonIntoSiteImage {
+    description = 'copy the block setting file(block.json) into site image'
+
+    def srcFile = file('src/assets/block.json')
+    def destDir = file("build/${siteSetting['targetDirectory']}")
+    def destFile = new File(destDir, srcFile.name)
+    inputs.file srcFile
+    outputs.file destFile
+
+    doLast {
+        copy {
+            from srcFile
+            into destDir
+        }
+    }
+    
 }
 
 /**
@@ -844,11 +1074,13 @@ task buildSiteImage {
 buildSiteImage.dependsOn build
 buildSiteImage.dependsOn copyPhpIntoSiteImage
 buildSiteImage.dependsOn copyJsIntoSiteImage
+buildSiteImage.dependsOn copyJsAssetsPhpIntoSiteImage
 buildSiteImage.dependsOn copyConfigIntoSiteImage
 buildSiteImage.dependsOn copyReadmeIntoSiteImage
 buildSiteImage.dependsOn copyAssetsIntoSiteImage
 buildSiteImage.dependsOn compileSass
 // buildSiteImage.dependsOn copyMoIntoSiteImage
+buildSiteImage.dependsOn copyBlockJsonIntoSiteImage
 
 /**
  * install the plugin into parent wordpress test directory
@@ -869,7 +1101,6 @@ task installPlugin {
 }
 
 archivePlugin.dependsOn buildSiteImage
-
 
 
 task updatePluginDir {
@@ -912,7 +1143,138 @@ task copyArchiveIntoUploadDirectory {
         def pluginPath = file(archivePlugin.archiveFile)
         project.parent.copyDataIntoUploadDirectory pluginPath
     }
-    
 }
+
+
+/**
+ * load doucument
+ */
+def loadDocument(
+    def filePath) {
+    def builderFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+    return builderFactory.newDocumentBuilder().parse(filePath)
+}
+
+
+
+/**
+ * read path data
+ */
+def readPathData(
+    def filePath) {
+    def doc = loadDocument(filePath)
+
+    def result = []
+    def paths = doc.getElementsByTagName("path")
+
+    
+    for (idx in 0 .. paths.length - 1) {
+        def node = paths.item(idx)
+        def d = node.getAttribute('d')
+        if (!d.empty) {
+            result << d
+        }
+    }
+    return result
+}
+
+
+task setupSvgPathRaw {
+    def inputFile = file('src/assets/block-editor-icon.svg')
+    def outputFile = file('src/assets/block-editor-icon.json')
+
+    def ioFiles = [
+        [
+            file('src/assets/block-editor-icon.svg'),
+            file('src/assets/block-editor-icon.json')
+        ],
+        [
+            file('src/assets/arrow-h-0-24.svg'),
+            file('src/assets/arrow-h-0-24.json')
+        ],
+        [
+            file('src/assets/arrow-h-1-24.svg'),
+            file('src/assets/arrow-h-1-24.json')
+        ]
+    ]
+    ioFiles.each {
+        inputs.files it[0]
+        outputs.files it[1]
+    }
+
+    doLast {
+        ioFiles.each {
+            def pathData = readPathData(it[0])
+
+            def jsonGen = new groovy.json.JsonGenerator.Options().build()
+            
+            def setting = [
+                d: pathData.join(' ')
+            ];
+            def strSetting = groovy.json.JsonOutput.prettyPrint(
+                jsonGen.toJson(setting))
+            it[1].text = strSetting
+        
+        }
+    }
+}
+
+jsBrowserDevelopmentWebpack.dependsOn setupSvgPathRaw
+jsBrowserProductionWebpack.dependsOn setupSvgPathRaw
+
+/**
+ * read svg path d file mapping
+ */
+def readSvgPathDMapList() {
+
+    def os = new ByteArrayOutputStream()
+    exec {
+        executable 'sh'
+        args 'tools/path-d-gen.sh'
+        args '-p', 'oc-soft'
+        args '-f', 'path-d-sources.txt'
+        standardOutput = os
+    }
+    def is = new ByteArrayInputStream(os.toByteArray()) 
+    
+    def slurper = new groovy.json.JsonSlurper()
+    def result = slurper.parseText(is.text)
+
+    result.each {
+        if ('path' in it) {
+            it['path'] = file(it['path'])
+        }
+    }
+    return result 
+}
+
+task genSvgPathDJs {
+    description = 'generate svg path d manager javascript'
+    dependsOn setupSvgPathRaw
+
+    def inputFile = file('src/jsCommon/resources/svg-path-d.js.in')
+    def outputFile = file('src/jsCommon/resources/svg-path-d.js')
+    inputs.files inputFile
+    outputs.files outputFile
+
+    doLast {
+        def pathDs = []
+        readSvgPathDMapList().each {
+            def name =it['name'].stripExtension()
+            def moduleName = it['name']
+            pathDs << String.format("d['%s'] = require('%s').d;",
+                name, moduleName)
+        }
+
+        def pathDsStr = pathDs.join("\n")
+
+        def srcData = inputFile.text
+        def outData = srcData.replace("@PATH_D_DECLS@", pathDsStr)
+        outputFile.text = outData 
+    } 
+}
+
+jsBrowserDevelopmentWebpack.dependsOn genSvgPathDJs
+jsBrowserProductionWebpack.dependsOn genSvgPathDJs
 
 // vi: se ts=4 sw=4 et:

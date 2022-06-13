@@ -52,7 +52,7 @@ class App {
     /**
      * autopagers
      */
-    val autoPagings: MutableList<AutoPaging> = ArrayList<AutoPaging>()
+    val autoPagings: MutableList<Paging> = ArrayList<Paging>()
 
 
     /**
@@ -61,14 +61,14 @@ class App {
     fun bind() {
 
         slideContainers.forEach {
-            val autoPaging = AutoPaging("autopaging-config")
+            val autoPaging = Paging("autopaging-config")
 
             autoPaging.bind(it)
             autoPagings.add(autoPaging)
         }
 
-        loadAutoPagings().then {
-            startAutoPagings()
+        loadPagings().then {
+            startPagings()
         }
     }
 
@@ -86,12 +86,12 @@ class App {
     /**
      * load autopaging settings
      */
-    fun loadAutoPagings():Promise<Unit> {
+    fun loadPagings():Promise<Unit> {
         return Promise.all(Array<Promise<Unit>>(autoPagings.size) {
             val autoPaging = autoPagings[it]
             autoPaging.loadSetting(siteUrl).then {
                 autoPaging.setupPagingContainer()
-                autoPaging.prepareAutoPlay() 
+                autoPaging.preparePlay() 
                 Unit
             }
         }).then { Unit }
@@ -100,7 +100,7 @@ class App {
     /**
      * start autopaging
      */
-    fun startAutoPagings() {
+    fun startPagings() {
         autoPagings.forEach {
             it.autoPlay()
         }

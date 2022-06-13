@@ -18,9 +18,20 @@ class Resolve {
   setupAlias(config) {
     const resolve = config.resolve || {}
     const alias = resolve.alias || {}
- 
 
     alias.kotlin = './kotlin.js'
+    alias['kotlin-react'] = './kotlin-react.js'
+    alias['kotlin-react-dom'] = './kotlin-react-dom.js'
+    alias['kotlin-react-core'] = './kotlin-react-core.js'
+    alias['kotlin-csstype'] = './kotlin-csstype.js'
+    alias['kotlin-extensions'] = './kotlin-extensions.js'
+
+    if (GradleBuild.config.resolve  && GradleBuild.config.resolve.aliases) {
+      GradleBuild.config.resolve.aliases.forEach(entry => {
+        alias[entry.name] = entry.path
+      }) 
+    }
+
     
     resolve.alias = alias
     config.resolve = resolve

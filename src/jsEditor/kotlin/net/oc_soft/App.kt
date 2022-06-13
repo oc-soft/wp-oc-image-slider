@@ -11,18 +11,47 @@ import org.w3c.dom.get
 /**
  * appliation
  */
-class App {
+class App( 
+    /**
+     * edit block
+     */
+    val edit: Edit = Edit(),
+
+    /**
+     * save block
+     */
+    val save: Save = Save()) {
+
 
     /**
      * attach this object into html elements
      */
     fun bind() {
+
+        val app = this
+        // register block editor 
+        
+        wordpress.blocks.registerBlockType(
+            net.oc_soft.block.name,
+            net.oc_soft.block.createMeta(
+                object {
+                    @JsName("icon")
+                    val icon = Icons.blockEditor
+
+                    @JsName("edit")
+                    val edit: (Any)->react.ReactElement<*> = { app.edit(it) }
+
+                    @JsName("save")
+                    val save: (Any)->react.ReactElement<*> = { app.save(it) }
+                }))
     }
 
     /**
      * detach this object from html elements
      */
     fun unbind() {
+        wordpress.blocks.unregisterBlockType(
+            net.oc_soft.block.name)
     }
 
     /**
