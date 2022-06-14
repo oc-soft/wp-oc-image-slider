@@ -74,6 +74,14 @@ class ImageURLs() {
     fun add(imageUrls: Array<ImageURL>) {
         imageUrls.forEach { add(it) }
     } 
+
+    /**
+     * remove all image urls
+     */
+    fun clear() {
+        sourceSet.clear()
+        sourceListCache = null
+    }
     
 
     /**
@@ -84,7 +92,6 @@ class ImageURLs() {
         if (removed) {
             sourceListCache = null
         }
-         
     }
 
     /**

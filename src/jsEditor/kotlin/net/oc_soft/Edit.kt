@@ -20,6 +20,12 @@ import net.oc_soft.geom.Size
  */
 class Edit {
 
+
+    /**
+     * user interface to show images 
+     */
+    val imagesUi = Images()
+
     /**
      * edit block
      */
@@ -60,18 +66,20 @@ class Edit {
         val blockProps: dynamic = wordpress.blockEditor.useBlockProps() 
  
         return return if (!images.isEmpty()) {
-            val imagesUiGen = Images()
+            
+            imagesUi.imageUrls.clear()
             images.forEach {
-                imagesUiGen.imageUrls.add(
+                imagesUi.imageUrls.add(
                     ImageURL(it.url,
                         it.width.toInt(),
                         it.height.toInt()))
             }
-            imagesUiGen(
+            imagesUi(
                 props,
                 blockProps, 
                 getPagingSize(), 
-                getPagingSetting())
+                getPagingSetting(),
+                attr)
         } else {
             createUiToAddNewImages(props, blockProps)
         }

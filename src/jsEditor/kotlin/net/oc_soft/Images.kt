@@ -37,7 +37,16 @@ class Images {
      */
     val slidePanel = Panel()
 
+    /**
+     * paging listener
+     */
+    var pagingListener: ((String, Paging)->Unit)? = null
 
+    /**
+     *  page index
+     */
+    var pageIndex: Int? = null
+    
     /**
      * create react element
      */
@@ -45,7 +54,8 @@ class Images {
         props: dynamic,
         blockProps: dynamic,
         size: Size?,
-        settings: Json): react.ReactElement<*> {
+        settings: Json,
+        attributes: dynamic): react.ReactElement<*> {
 
         val setAttrs: (dynamic)->Unit = props.setAttributes
         val attrs: dynamic = props.attributes 
@@ -53,13 +63,13 @@ class Images {
         val pagingController = react.useRef<HTMLElement>()
         react.useEffect {
             val paging = pagingController.current?.let {
-                bindPaging(it, pagingSize, settings, attrs)
+                bindPaging(it, pagingSize, settings, attributes)
             }
             cleanup {
                 pagingController.current?.let {
                     val controller = it
                     paging?.let {
-                        unbindPaging(it , controller, setAttrs)
+                        unbindPaging(it , controller)
                     }
                 }
             }
@@ -101,17 +111,24 @@ class Images {
         settings: Json,
         attributes: dynamic): Paging {
 
-        
+        val pagingListener: (String, Paging)->Unit = { 
+            eventType, paging ->
+            handlePagingEvent(eventType, paging)
+        }
         val contentsLoader: ()->Array<HTMLElement> = {
             createContents(pagingSize, attributes)
         }
 
-        val pageIndex = (attributes["editor-page"] as Any?)?.let {
-            it as Int 
-        }?: 0
-
         slidePanel.bind(controllerRootElement)
-        return slidePanel.bindPaging(pageIndex, settings, contentsLoader)
+
+        val result = slidePanel.bindPaging(
+            pageIndex?: 0, settings, contentsLoader)
+
+
+        result.addEventListener(null, pagingListener)
+
+        this.pagingListener = pagingListener
+        return result
     }
 
     /**
@@ -119,15 +136,12 @@ class Images {
      */
     fun unbindPaging(
         paging: Paging,
-        controllerRootElement: HTMLElement,
-        setAttributes: (dynamic)->Unit) {
+        controllerRootElement: HTMLElement) {
 
-        paging.pageIndex?.let {
-            val pageIndex = it
-            setAttributes( object {
-                @JsName("editorName")
-                val editorPage = pageIndex
-            })
+        pageIndex = paging.pageIndex
+        pagingListener?.let {
+            paging.removeEventListener(null, it)
+            pagingListener = null
         }
         slidePanel.unbindPaging()
         slidePanel.unbind()    
@@ -228,6 +242,15 @@ class Images {
             "no-repeat").joinToString(" ")
 
         return imageBg
+        
+    }
+
+    /**
+     * handle paging event
+     */
+    fun handlePagingEvent(
+        evenType: String,
+        paging: Paging) {
         
     }
 }
