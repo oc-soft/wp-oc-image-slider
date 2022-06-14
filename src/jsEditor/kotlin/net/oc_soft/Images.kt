@@ -129,7 +129,7 @@ class Images {
                 val editorPage = pageIndex
             })
         }
-        slidePanel.unbindPaging(paging)
+        slidePanel.unbindPaging()
         slidePanel.unbind()    
     }
 

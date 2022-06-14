@@ -1,6 +1,7 @@
 package net.oc_soft.slide
 
 import kotlin.js.Json
+import kotlin.js.Promise
 
 import kotlinx.browser.document
 
@@ -99,6 +100,17 @@ class Panel {
      */
     var pagingCommandClickHdlr: ((Event)->Unit)? = null
 
+    /**
+     * promise object. It is exists only while paging object is moving 
+     * between pages.
+     */
+    var pagingPromise: Promise<Unit>? = null
+
+
+    /**
+     * pagination object
+     */
+    var paging: Paging? = null
 
     /**
      * attach this object into html elements
@@ -175,15 +187,18 @@ class Panel {
         paging.setupPagingContainer()
         paging.preparePlay()
         paging.pageIndex = pageIndex
+        this.paging = paging
         return paging
     }
 
     /**
      * detach this object from pager
      */
-    fun unbindPaging(
-        paging: Paging) {
-        paging.unbind()
+    fun unbindPaging() {
+        paging?.let {
+            it.unbind()
+            paging = null
+        }
     }
 
 
@@ -191,11 +206,7 @@ class Panel {
      * handle paging event
      */
     fun handlePagingEventCommand(event: Event) {
-        if (event.currentTarget == pagingForwardUI) {
-            println("foward clicked")
-        } else if (event.currentTarget == pagingBackwardUI) {
-            println("backword clicked")
-        }
+        proceedPage(event.currentTarget == pagingForwardUI)
     }
 
     /**
@@ -288,7 +299,20 @@ class Panel {
         } else null
         return result
     }
-    
+
+
+    /**
+     * proceed to page forward.
+     */
+    fun proceedPage(forward: Boolean) {
+        if (pagingPromise == null) {
+            paging?.let {
+                pagingPromise = it.proceedPage(forward).then {
+                    pagingPromise = null
+                }
+            }
+        }
+    }
 }
 
 // vi: se ts=4 sw=4 et:
