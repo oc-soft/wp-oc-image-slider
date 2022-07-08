@@ -6,12 +6,12 @@ import kotlinx.browser.document
 
 import org.w3c.dom.HTMLElement
 
-import wordpress.components.Icon
 
 import react.create
 import react.dom.html.ReactHTML.div
-import net.oc_soft.geom.Size
+import net.oc_soft.slide.settings.Size
 import net.oc_soft.slide.Panel
+import net.oc_soft.image.ContentsMgr as ImageContentsMgr
 
 /**
  * manage images
@@ -54,16 +54,15 @@ class Images {
         props: dynamic,
         blockProps: dynamic,
         size: Size?,
+        previewWidth: Int?,
         settings: Json,
         attributes: dynamic): react.ReactElement<*> {
 
-        val setAttrs: (dynamic)->Unit = props.setAttributes
         val attrs: dynamic = props.attributes 
-        val pagingSize = getPagingSize(size)
         val pagingController = react.useRef<HTMLElement>()
         react.useEffect {
             val paging = pagingController.current?.let {
-                bindPaging(it, pagingSize, settings, attributes)
+                bindPaging(it, size, previewWidth, settings, attributes)
             }
             cleanup {
                 pagingController.current?.let {
@@ -79,20 +78,30 @@ class Images {
             val position = "relative"
         }.unsafeCast<react.CSSProperties>()
         
-        pagingSize?.let {
-            val size0 = it
-            Object.assign(styleContainingImageAndController, object {
-                @JsName("width")
-                val width = size0.widthPx
-                @JsName("height")
-                val height = size0.heightPx
-            })
+        size?.let {
+            it.createStyle(previewWidth?.let{ it.toDouble() }).forEach {
+                val styleDyn: dynamic = styleContainingImageAndController
+                styleDyn[it.first] = it.second
+
+            }
+            styleContainingImageAndController.marginLeft = 
+                "auto".unsafeCast<csstype.MarginLeft>()
+
+            styleContainingImageAndController.marginRight = 
+                "auto".unsafeCast<csstype.MarginRight>()
+
         }
 
-
+          
+        val rootStyle: csstype.Properties = 
+            (object {}).unsafeCast<csstype.Properties>()
+        
+        
         return react.Fragment.create {
             div {
                 Object.assign(this, blockProps) 
+
+                         
                 
                 div {
                     style = styleContainingImageAndController
@@ -102,12 +111,16 @@ class Images {
         }
     }
 
+
+
+
     /**
      * attach this object into pager
      */
     fun bindPaging(
         controllerRootElement: HTMLElement,
         pagingSize: Size?,
+        previewWidth: Int?,
         settings: Json,
         attributes: dynamic): Paging {
 
@@ -115,14 +128,15 @@ class Images {
             eventType, paging ->
             handlePagingEvent(eventType, paging)
         }
-        val contentsLoader: ()->Array<HTMLElement> = {
-            createContents(pagingSize, attributes)
+        val contentsLoader: (HTMLElement)->Array<HTMLElement> = {
+            ImageContentsMgr.createContents(imageUrls, it, attributes)
         }
 
         slidePanel.bind(controllerRootElement)
 
+
         val result = slidePanel.bindPaging(
-            pageIndex?: 0, settings, contentsLoader)
+            pageIndex, settings, contentsLoader)
 
 
         result.addEventListener(null, pagingListener)
@@ -147,10 +161,12 @@ class Images {
         slidePanel.unbind()    
     }
 
+    
+
     /**
      * get paging size
      */
-    fun getPagingSize(size: Size?): Size? {
+    fun getPagingSize(size: net.oc_soft.geom.Size?): net.oc_soft.geom.Size? {
         return if (size != null) {
             size
         } else {
@@ -158,92 +174,6 @@ class Images {
         }
     }
 
-
-    /**
-     * create contents
-     */
-    fun createContents(
-        size: Size?,
-        attributes: dynamic): Array<HTMLElement> {
-        return Array<HTMLElement>(imageUrls.size) {
-            createContent(imageUrls[it], size, attributes)
-        } 
-    }
-    
-    /**
-     * create image content
-     */
-    fun createContent(
-        imageUrl: ImageURL, 
-        size: Size?,
-        attributes: dynamic): HTMLElement {
-        val result = document.createElement("div") as HTMLElement
-
-        val imageSize = 
-            size?: Size(imageUrl.width.toDouble(), imageUrl.height.toDouble()) 
-
-        result.style.width = "${imageSize.widthPx}"
-        result.style.height = "${imageSize.heightPx}"
-
-        result.style.background = createBackground(imageUrl, size, attributes) 
-        return result
-    }
-
-
-    /**
-     * create backgrounds
-     */
-    fun createBackgrounds(
-        size: Size?, 
-        attributes: dynamic): Array<String> {
-        return Array<String>(imageUrls.size) {
-            createBackground(imageUrls[it], size, attributes)
-        }
-    }
-
-
-    /**
-     * create background string
-     */
-    fun createBackground(
-        imageUrl: ImageURL, 
-        size: Size?,
-        attributes: dynamic): String {
-
-        val bgPosSize = size?.let {
-            val imageSize = Size(
-                imageUrl.width.toDouble(), 
-                imageUrl.height.toDouble())
-            
-            val bgSize = if (it.contains(imageSize)) {
-                "contain" 
-            } else {
-                val ratioW = it.width / imageSize.width
-                val ratioH = it.height / imageSize.height
-                if (ratioW < ratioH) {
-                    "${it.widthPx} auto"
-                } else {
-                    "auto ${it.heightPx}"
-                }
-            }
-            "center/${bgSize}"
-        }?: "center"
-
-        val colorSetting = attributes["page-color"] as Any?
-        val colorStr = colorSetting?.let {
-            if (it is String) it else ""
-        }?: ""
-
-        
-        val imageBg = arrayOf(
-            colorStr,
-            "url(\"${imageUrl.url}\")",
-            bgPosSize,
-            "no-repeat").joinToString(" ")
-
-        return imageBg
-        
-    }
 
     /**
      * handle paging event

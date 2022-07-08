@@ -161,6 +161,7 @@ kotlin {
             dependencies {
                 implementation kotlin('stdlib-js')
                 implementation project(':oc-slide-image')
+                implementation kotlinw('css', '1.0.0-pre.345')
             }
         }
         jsMain {
@@ -176,6 +177,8 @@ kotlin {
 
                 implementation kotlinw('extensions', 
                     '1.0.1-pre.328-kotlin-1.6.20')
+
+
                 implementation kotlinw('react-core', kotlinWrapperVersion)
                 implementation kotlinw('react', kotlinWrapperVersion)
                 implementation kotlinw('react-dom', kotlinWrapperVersion)
@@ -189,6 +192,7 @@ kotlin {
                 implementation npm('@wordpress/compose', '>=5.2.1')
                 implementation npm('@wordpress/i18n', '>=4.4.1')
                 implementation npm('@wordpress/components', '>=19.6.1')
+                implementation npm('@wordpress/edit-post', '>=6.8.0')
 
                 implementation npm('react', '>=18.0.0')
                 implementation npm('react-dom', '>=18.0.0')

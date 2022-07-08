@@ -77,7 +77,13 @@ class Externals {
       commonjs2: '@wordpress/hooks',
       amd: '@wordpress/hooks'
     }
-    
+    externals['@wordpress/edit-post'] = {
+      root: ['wp', 'editPost'],
+      commonjs: '@wordpress/edit-post',
+      commonjs2: '@wordpress/edit-post',
+      amd: '@wordpress/edit-post'
+    }
+     
     externals['react'] = {
       root: 'React',
       commonjs: 'react',
