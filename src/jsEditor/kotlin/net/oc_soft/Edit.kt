@@ -24,6 +24,9 @@ import net.oc_soft.slide.settings.SizeOption
 
 import net.oc_soft.px.pxToInt
 
+import net.oc_soft.paging.Settings as PagingSettings
+
+
 /**
  * edit block
  */
@@ -349,35 +352,7 @@ class Edit {
         
         val result: dynamic = Object.assign(object {}, setting)
 
-        var settingValue = attr["paging-control-loop"] as Any?
-        val controlSetting: dynamic = object { }
-        controlSetting.loop = when (settingValue) {
-            is String -> settingValue.toInt() != 0
-            is Number -> settingValue.toInt() != 0
-            else -> false 
-        } 
-        settingValue = attr["paging-control-auto"] 
-
-        controlSetting.auto = when (settingValue) {
-            is String -> settingValue.toInt() != 0
-            is Number -> settingValue.toInt() != 0
-            else -> false 
-        }
-
-        controlSetting["color-1"] = attr["paging-control-color-1"]
-        controlSetting["color-2"] = attr["paging-control-color-2"]
-        
-        settingValue = attr["paging-control-auto-direction"]
-        controlSetting["auto-direction"] = when (settingValue) {
-            is String -> settingValue.toInt()
-            is Number -> settingValue
-            else -> 0
-        }
-
-        result.control = controlSetting
-
-
-
+        result.control = PagingSettings.createControlSettingFromAttribute(attr) 
         return result as Json
     }
     /**
@@ -385,78 +360,10 @@ class Edit {
      */
     fun getPagingSize(
         attr: dynamic): Size? {
-        val optionKeys =  arrayOf("page-width-option", "page-height-option")
-        val optionSettings = Array<Number?>(optionKeys.size) {
-            val value = attr[optionKeys[it]] as Any?
-            if (value is Number) {
-                value as Number
-            } else null
-        }
-
-        val result = if (optionSettings[0] != null 
-            && optionSettings[1] != null) {
-            var sizeKeys = if (optionSettings[0] == 0) {
-                arrayOf("page-width-relative")
-            } else {
-                arrayOf(
-                    "page-width-desktop",
-                    "page-width-tablet",
-                    "page-width-mobile")
-                
-            }
-            var sizeSettings = Array<Number?>(sizeKeys.size) {
-                val value = attr[sizeKeys[it]] as Any?
-                if (value is Number) {
-                    value as Number
-                } else null
-            }
-            val width = if (sizeSettings[0] != null) {
-                var lastValue: Double? = null
-                Width(SizeOption.values()[optionSettings[0]!!.toInt()],
-                    DoubleArray(sizeSettings.size) {
-                        val current = sizeSettings[it] 
-                        current?.let {
-                            lastValue = it.toDouble()
-                        }
-                        lastValue!!
-                    })
-            } else null
-
-            sizeKeys = if (optionSettings[1] == 0) {
-                arrayOf("page-height-aspect-1",
-                    "page-height-aspect-2")
-            } else {
-                arrayOf(
-                    "page-height-desktop",
-                    "page-height-tablet",
-                    "page-height-mobile")
-                
-            }
-            sizeSettings = Array<Number?>(sizeKeys.size) {
-                val value = attr[sizeKeys[it]] as Any?
-                if (value is Number) {
-                    value as Number
-                } else null
-            }
-            val height = if (sizeSettings[0] != null) {
-                var lastValue: Double? = null
-                Height(SizeOption.values()[optionSettings[1]!!.toInt()],
-                    DoubleArray(sizeSettings.size) {
-                        val current = sizeSettings[it] 
-                        current?.let {
-                            lastValue = it.toDouble()
-                        }
-                        lastValue!!
-                    })
-            } else null
-
-            if (width != null && height != null) {
-                Size(width, height)
-            } else null
-        } else null
-
-        return result
+        return net.oc_soft.wordpress.Size.createPagingSizeFromSettings(
+            attr)
     }
+
 }
 
 // vi: se ts=4 sw=4 et:

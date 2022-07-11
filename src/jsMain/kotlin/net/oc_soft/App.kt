@@ -13,6 +13,7 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.get
 import org.w3c.dom.url.URL
 
+import net.oc_soft.wordpress.Slide as WpSlide
 
 /**
  * appliation
@@ -56,6 +57,11 @@ class App {
 
 
     /**
+     * slide object for wordpress
+     */
+    val wpSlide = WpSlide()
+
+    /**
      * attach this object into html elements
      */
     fun bind() {
@@ -70,12 +76,16 @@ class App {
         loadPagings().then {
             startPagings()
         }
+
+        wpSlide.bind()
     }
 
     /**
      * detach this object from html elements
      */
     fun unbind() {
+        wpSlide.unbind()
+
         autoPagings.forEach {
             it.unbind()
         }

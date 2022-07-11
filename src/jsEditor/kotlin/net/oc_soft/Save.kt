@@ -1,6 +1,9 @@
 package net.oc_soft
 
+import kotlinx.browser.window
+import kotlin.js.JSON
 import kotlinx.js.Object
+
 import react.Fragment
 import react.create
 import react.dom.html.ReactHTML.div
@@ -24,11 +27,43 @@ class Save {
 
         val children0 = react.Children.toArray(innerBlockProps0.children)
 
+
+        val dynSettings: dynamic = settings
+
+        val attrObj = dynSettings.attributes as Any?
+
+        val objAttr: dynamic = object {}
+        attrObj?.let {
+            val dynAttr: dynamic = it
+            Object.keys(it).forEach {
+                val attrValue0 = dynAttr[it] as Any?
+            
+                val attrValue = when (attrValue0) {
+                    is String ->  attrValue0
+                    is Number ->  attrValue0.toString()
+                    else -> null
+                }
+                val keyName = it
+                attrValue?.let {
+                    objAttr["data-${keyName}"] = attrValue
+                }
+            }
+        }
+         
+        
+        
         return Fragment.create {
             div {
                 Object.assign(this, innerBlockProps)
+                Object.assign(this, objAttr)
                 
                 children0.forEach { +it }
+
+                div {
+                    className = csstype.ClassName("paging-setting")
+
+                    + window.btoa(JSON.stringify(net.oc_soft.paging.setting))
+                }
             }
         } 
     }

@@ -153,6 +153,7 @@ class Images {
         controllerRootElement: HTMLElement) {
 
         pageIndex = paging.pageIndex
+
         pagingListener?.let {
             paging.removeEventListener(null, it)
             pagingListener = null

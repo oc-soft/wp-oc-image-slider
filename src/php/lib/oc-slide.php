@@ -84,7 +84,9 @@ class OcSlide {
         wp_enqueue_script(
             $registration->script);
 
-
+        if (!is_admin()) {
+            wp_enqueue_script($registration->view_script);
+        }
         /*
         wp_set_script_translations(
             self::$script_handle, 
@@ -116,6 +118,16 @@ class OcSlide {
         wp_enqueue_style(
             $registration->style);
     }
+
+    /**
+     * render block
+     */
+    function render_block(
+        $block_attributes,
+        $block_contents,
+        $block) {
+        return $block_contents;
+    }
     
     /**
      * handle init event
@@ -126,7 +138,9 @@ class OcSlide {
         $translations_dir,
         $plugin_dir) {
 
-        $registration = register_block_type($plugin_dir);
+        $registration = register_block_type($plugin_dir, [
+            'render_callback' => [$this, 'render_block']
+        ]);
 
 
         add_action('wp', function() 

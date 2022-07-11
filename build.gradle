@@ -82,7 +82,7 @@ ext.nodeModuleResolve = [
         ],
         [
             'name': 'oc-soft/block-meta',
-            'path': file('src/jsEditor/resources/block-meta.js')
+            'path': file('src/jsCommon/resources/block-meta.js')
         ],
         [
             'name': 'oc-soft/block.json',
@@ -162,6 +162,7 @@ kotlin {
                 implementation kotlin('stdlib-js')
                 implementation project(':oc-slide-image')
                 implementation kotlinw('css', '1.0.0-pre.345')
+                implementation kotlinw('js', '1.0.0-pre.353')
             }
         }
         jsMain {
