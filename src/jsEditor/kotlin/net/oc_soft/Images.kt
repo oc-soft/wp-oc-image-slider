@@ -55,24 +55,12 @@ class Images {
         blockProps: dynamic,
         size: Size?,
         previewWidth: Int?,
+        pagingController: react.MutableRefObject<HTMLElement>,
         settings: Json,
         attributes: dynamic): react.ReactElement<*> {
 
         val attrs: dynamic = props.attributes 
-        val pagingController = react.useRef<HTMLElement>()
-        react.useEffect {
-            val paging = pagingController.current?.let {
-                bindPaging(it, size, previewWidth, settings, attributes)
-            }
-            cleanup {
-                pagingController.current?.let {
-                    val controller = it
-                    paging?.let {
-                        unbindPaging(it , controller)
-                    }
-                }
-            }
-        }
+        
         val styleContainingImageAndController = object {
             @JsName("position")
             val position = "relative"

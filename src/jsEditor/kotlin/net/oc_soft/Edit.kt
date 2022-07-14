@@ -4,6 +4,7 @@ import kotlin.js.Json
 
 import kotlinx.js.Object
 
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URL
 
 import react.Fragment
@@ -96,9 +97,27 @@ class Edit {
             }             
         }?: emptyArray<Image>()
         val blockProps: dynamic = wordpress.blockEditor.useBlockProps() 
- 
+        val previewWidth = getPreviewDeviceWidth()?.let{ it.toInt() }
+        val pagingController = react.useRef<HTMLElement>()
+        react.useEffect {
+            val paging = pagingController.current?.let {
+                imagesUi.bindPaging(
+                    it, 
+                    getPagingSize(attr), previewWidth, 
+                    getPagingSetting(attr), attr)
+            }
+            cleanup {
+                pagingController.current?.let {
+                    val controller = it
+                    paging?.let {
+                        imagesUi.unbindPaging(it , controller)
+                    }
+                }
+            }
+        }
         return if (!images.isEmpty()) {
-            createPreviewUi(props, blockProps, images)
+            createPreviewUi(props, blockProps, previewWidth, 
+                pagingController, images)
         } else {
             createUiToAddNewImages(props, blockProps)
         }
@@ -110,6 +129,8 @@ class Edit {
     fun createPreviewUi(
         props: dynamic,
         blockProps: dynamic,
+        previewWidth: Int?,
+        pagingController: react.MutableRefObject<HTMLElement>, 
         images: Array<Image>): react.ReactElement<*> {
         val clientId = props.clientId as String
         val attr = props.attributes
@@ -208,7 +229,8 @@ class Edit {
             }
             + imagesUi(props, blockProps, 
                 getPagingSize(attr), 
-                getPreviewDeviceWidth()?.let{ it.toInt() },
+                previewWidth,
+                pagingController,
                 getPagingSetting(attr), attr)
         }
     }
@@ -275,7 +297,7 @@ class Edit {
                     multiple = true
                     accept = "image/*"
                     allowedTypes = arrayOf("image")
-                    addToGallery = false
+                    addToGallery = true
                     onSelect = onSelectImages
                 } 
             }
