@@ -1,6 +1,8 @@
 package net.oc_soft.components
 
+import kotlinx.js.Object
 import react.create
+
 
 class PagingControl {
 
@@ -11,12 +13,40 @@ class PagingControl {
         attributes: dynamic,
         setAttributes: (dynamic)->Unit): react.ReactNode {
 
+        val handleChangeDuration: (dynamic)->Unit = {
+            val duration = when (it) {
+                is String -> (it as String).toIntOrNull()
+                is Number -> it.toInt()
+                else -> throw IllegalArgumentException()
+            }
+            duration?.let {
+                val setting: dynamic = object {}
+                setting["paging-control-stop-duration"] = duration
+                setAttributes(setting)
+            }
+        }
+        val duration = attributes["paging-control-stop-duration"]
+
         return react.Fragment.create {
 
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Paging", 
                     "oc-slide")
+                
+                wordpress.components.TextControl {
+                    Object.assign(this, object {
+                        @JsName("min")
+                        val min = 0
+                    })
+                    label = wordpress.i18n.gettext(
+                        "Stop Duration (msec)",
+                        "oc-slide")
+                    value = duration
+                    onChange = handleChangeDuration
+                    type = "number"
+                }
+
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(

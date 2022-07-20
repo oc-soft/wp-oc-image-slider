@@ -163,6 +163,7 @@ kotlin {
                 implementation project(':oc-slide-image')
                 implementation kotlinw('css', '1.0.0-pre.345')
                 implementation kotlinw('js', '1.0.0-pre.353')
+                implementation kotlinw('browser', '0.0.1-pre.345')
             }
         }
         jsMain {

@@ -1,5 +1,138 @@
 {
-  "settings" : [
+  "settings": [
+    {
+      "type": "fragments-page",
+      "animation": {
+        "next-page" : {
+          "type":  "square",
+          "size": 20,
+          "anchor": [2, 3],
+          "steps": 2,
+          "animation": {
+            "order": "row",
+            "duration": 200,
+            "delay": 50,
+            "major-direction": 1,
+            "minor-direction": 1,
+            "major-offset": 0,
+            "minor-offset": 0,
+            "stride-offset": 0
+          }
+        },
+        "previous-page" : {
+          "type":  "square",
+          "size": 20,
+          "anchor": [0, 1],
+          "steps": 2,
+          "animation": {
+            "order": "row",
+            "duration": 200,
+            "delay": 50,
+            "major-direction": -1,
+            "minor-direction": -1,
+            "major-offset": -1,
+            "minor-offset": -1,
+            "stride-offset": 0
+          }
+        }
+      }
+    } 
+  ],
+  "settings-fragments-rect": [
+    {
+      "type": "fragments-page",
+      "animation": {
+        "next-page" : {
+          "type":  "rect",
+          "row-count": 5,
+          "column-count": 5,
+          "anchor": [2, 3],
+          "steps": 2,
+          "animation": {
+            "order": "row",
+            "duration": 200,
+            "delay": 50,
+            "major-direction": 1,
+            "minor-direction": 1,
+            "major-offset": 0,
+            "minor-offset": 0,
+            "stride-offset": 0
+          }
+        },
+        "previous-page" : {
+          "type":  "rect",
+          "row-count": 5,
+          "column-count": 5,
+          "anchor": [0, 1],
+          "steps": 2,
+          "animation": {
+            "order": "row",
+            "duration": 200,
+            "delay": 50,
+            "major-direction": -1,
+            "minor-direction": -1,
+            "major-offset": -1,
+            "minor-offset": -1,
+            "stride-offset": 0
+          }
+        }
+      }
+    } 
+  ],
+  "settings-fade": [
+    {
+      "type": "fade-page",
+      "animation": {
+        "next-page" : {
+          "fade-in": true,
+          "fade-out": true,
+          "duration": 1000
+        },
+        "previous-page": {
+          "fade-in": true,
+          "fade-out": true,
+          "duration": 1000
+        }
+      }
+    } 
+  ],
+  "settings-push": [
+    {
+      "type": "push-page",
+      "animation": {
+        "next-page" : {
+          "push-in-position": [ 100, 0 ],
+          "push-out-position": [ -100, 0 ],
+          "duration": 1000
+        },
+        "previous-page": {
+          "push-in-position": [ -100, 0 ],
+          "push-out-position": [ 100, 0 ],
+          "duration": 1000
+        }
+      }
+    } 
+  ],
+  "settings-slide": [
+    {
+      "type": "slide-page",
+      "animation": {
+        "next-page" : {
+          "start-position": [ 100, 0 ],
+          "stop-position": [ 0, 0 ],
+          "move-in": true,
+          "duration": 1000
+        },
+        "previous-page": {
+          "start-position": [ 0, 0 ],
+          "stop-position": [ -100, 0 ],
+          "move-in": false,
+          "duration": 1000
+        }
+      }
+    } 
+  ],
+  "settings-turn-page" : [
     {
       "type": "turn-page",
       "flip-start": 1,

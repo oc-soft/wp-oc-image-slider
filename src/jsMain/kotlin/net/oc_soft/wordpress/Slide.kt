@@ -23,6 +23,7 @@ import net.oc_soft.image.ContentsMgr as ImageContentsMgr
 
 import net.oc_soft.paging.Settings as PagingSettings
 
+import net.oc_soft.camelToDashStyle
 
 /**
  * slide for wordpress plugin
@@ -95,13 +96,14 @@ class Slide {
         panel: Panel) {
         val slideSettings = retrieveSettingsFromRootContainer(rootElement)
         val imageUrls = loadImagesFromRootContainer(rootElement)
-        val contentsLoader: (HTMLElement)->Array<HTMLElement> = {
+        val contentsLoader: (HTMLElement)->Array<
+            Pair<HTMLElement, (HTMLElement)->HTMLElement>> = {
             val attributes: dynamic = slideSettings
             ImageContentsMgr.createContents(
                 imageUrls, it, attributes)
         }
-        val pagingSetting = loadPagingSetting(rootElement)
-        updatePagingSetting(pagingSetting as Json, slideSettings)
+        val pagingSetting = PagingSettings.createPagingSettingsFromAttributes(
+            slideSettings)
         setupRootElementBoundingBox(rootElement, slideSettings)
         panel.bind(rootElement)
         panel.bindPaging(null, pagingSetting, contentsLoader)
@@ -130,7 +132,7 @@ class Slide {
         
         net.oc_soft.wordpress.Size.createPagingSizeFromSettings(attr)?.let {
             it.createStyle(null).forEach {
-                rootElementStyle[it.first] = it.second
+                rootElementStyle[it.first.camelToDashStyle()] = it.second
             }
             rootElementStyle.marginLeft = "auto"
             rootElementStyle.marginRight = "auto"
@@ -195,19 +197,11 @@ class Slide {
         slideSetting: Any?) {
 
         pagingSetting["control"] = 
-            PagingSettings.createControlSettingFromAttribute(slideSetting)
+            PagingSettings.createControlSettingFromAttributes(slideSetting)
           
     }
 
 
-    /**
-     * load setting from root element
-     */
-    fun loadPagingSetting(rootElement: HTMLElement): Json {
-        return rootElement.querySelector(".paging-setting")?.let {
-            JSON.parse(window.atob((it as HTMLElement).innerHTML))
-        }?: kotlin.js.json()
-    }
 }
 
 

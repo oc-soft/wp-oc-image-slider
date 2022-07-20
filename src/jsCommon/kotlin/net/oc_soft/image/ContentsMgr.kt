@@ -4,6 +4,9 @@ import kotlinx.browser.document
 
 import org.w3c.dom.HTMLElement
 
+import org.w3c.dom.ResizeObserver
+import org.w3c.dom.ResizeObserverEntry
+
 
 import net.oc_soft.ImageURLs
 import net.oc_soft.ImageURL
@@ -25,8 +28,11 @@ class ContentsMgr {
         fun createContents(
             imageUrls: ImageURLs,
             pagingContainer: HTMLElement,
-            attributes: dynamic): Array<HTMLElement> {
-            return Array<HTMLElement>(imageUrls.size) {
+            attributes: dynamic): Array<
+                Pair<HTMLElement, (HTMLElement)->HTMLElement>> {
+            return Array<
+                Pair<HTMLElement, (HTMLElement)->HTMLElement>>(
+                imageUrls.size) {
                 createContent(imageUrls[it], pagingContainer, attributes)
             } 
         }
@@ -37,20 +43,54 @@ class ContentsMgr {
         fun createContent(
             imageUrl: ImageURL, 
             pagingContainer: HTMLElement,
-            attributes: dynamic): HTMLElement {
-            val result = document.createElement("div") as HTMLElement
+            attributes: dynamic): 
+            Pair<HTMLElement, (HTMLElement)->HTMLElement>  {
+            val content = document.createElement("div") as HTMLElement
+            
 
+            val items = ArrayList<HTMLElement>()
+
+            val resizeObserver = ResizeObserver {
+                entries, observer ->
+                items.forEach {
+                    updateContentsStyle(
+                        pagingContainer, attributes, imageUrl, it)
+                }
+            }
+            resizeObserver.observe(pagingContainer)
+
+            updateContentsStyle(pagingContainer, attributes, imageUrl, content)
+            items.add(content)
+
+            val cloneElem: (HTMLElement)->HTMLElement = {
+                val elem = it.cloneNode(true) as HTMLElement
+                items.add(elem)
+                elem
+            }
+
+            return Pair(content, cloneElem)
+        }
+
+
+        /**
+         * update contents style
+         */
+        fun updateContentsStyle(
+            pagingContainer: HTMLElement,
+            attributes: dynamic,
+            imageUrl: ImageURL,
+            contentElement: HTMLElement) {
             val bounds = pagingContainer.getBoundingClientRect()
 
             val imageSize = Size(bounds.width, bounds.height) 
 
-            result.style.width = "${imageSize.widthPx}"
-            result.style.height = "${imageSize.heightPx}"
+            contentElement.style.width = "${imageSize.widthPx}"
+            contentElement.style.height = "${imageSize.heightPx}"
 
-            result.style.background = createBackground(
+            contentElement.style.background = createBackground(
                 imageUrl, imageSize, attributes) 
-            return result
         }
+
         
         /**
          * create background string
@@ -90,9 +130,7 @@ class ContentsMgr {
                 "url(\"${imageUrl.url}\")",
                 bgPosSize,
                 "no-repeat").joinToString(" ")
-
             return imageBg
-            
         }
     }
 

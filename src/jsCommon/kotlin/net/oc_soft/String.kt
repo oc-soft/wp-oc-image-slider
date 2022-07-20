@@ -9,17 +9,22 @@ import kotlin.text.uppercase
  */
 fun String.dashStyleToCamel(): String {
 
-    val words0 = split("-")
-
-    val words1 = Array<String>(words0.size) {
-        val word = words0[it]
-        if (!word.isEmpty() && it != 0) {
-            word[0].uppercase() + word.substring(1)
-        } else {
-            word
-        }
+    val result = replace(Regex("-([a-z])")) {
+        it.groups[1]!!.value.uppercase()
     }
-    return words1.joinToString("")
+
+    return result
+}
+
+/**
+ * convert camel style to dash style
+ */
+fun String.camelToDashStyle(): String {
+
+    val result = replace(Regex("([a-z0-9])([A-Z])")) {
+        it.groups[1]!!.value + "-" + it.groups[2]!!.value.lowercase()
+    }
+    return result
 }
 
 

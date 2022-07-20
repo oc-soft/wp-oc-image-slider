@@ -246,7 +246,8 @@ class Panel {
     fun bindPaging(
         pageIndex: Int?,
         settings: Json,
-        contentsLoader: (HTMLElement)->Array<HTMLElement>): Paging {
+        contentsLoader: (HTMLElement)->Array<
+            Pair<HTMLElement, (HTMLElement)->HTMLElement>>): Paging {
         return bindPaging(
             pagingContainer!!, pageIndex, settings,
             contentsLoader)
@@ -260,7 +261,9 @@ class Panel {
         pagingContainer: HTMLElement,
         pageIndex: Int?,
         settings: Json,
-        contentsLoader: (HTMLElement)->Array<HTMLElement>): Paging {
+        contentsLoader: 
+            (HTMLElement)->Array<
+                Pair<HTMLElement, (HTMLElement)->HTMLElement>>): Paging {
         val paging = Paging("")
 
         setupController(settings)

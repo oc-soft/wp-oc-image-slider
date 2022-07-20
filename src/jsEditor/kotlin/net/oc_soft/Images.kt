@@ -116,7 +116,8 @@ class Images {
             eventType, paging ->
             handlePagingEvent(eventType, paging)
         }
-        val contentsLoader: (HTMLElement)->Array<HTMLElement> = {
+        val contentsLoader: (HTMLElement)->Array<
+            Pair<HTMLElement, (HTMLElement)->HTMLElement>> = {
             ImageContentsMgr.createContents(imageUrls, it, attributes)
         }
 

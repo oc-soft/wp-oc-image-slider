@@ -18,6 +18,7 @@ import net.oc_soft.slide.settings.Size
 import net.oc_soft.components.EditWidth
 import net.oc_soft.components.EditHeight
 import net.oc_soft.components.PagingControl
+import net.oc_soft.components.ImageEffect
 
 import net.oc_soft.slide.settings.Width
 import net.oc_soft.slide.settings.Height
@@ -55,6 +56,12 @@ class Edit {
      * paging control
      */
     val pagingControl = PagingControl()
+
+
+    /**
+     * image effect control
+     */
+    val imageEffect = ImageEffect()
 
     /**
      * edit block
@@ -211,6 +218,8 @@ class Edit {
                     title = wordpress.i18n.gettext(
                         "Color", "oc-slide")
                 }
+
+                + imageEffect(attr, setAttr)
             }
 
             wordpress.blockEditor.BlockControls {
@@ -372,10 +381,7 @@ class Edit {
     fun getPagingSetting(attr: dynamic): Json {
         val setting = net.oc_soft.paging.setting
         
-        val result: dynamic = Object.assign(object {}, setting)
-
-        result.control = PagingSettings.createControlSettingFromAttribute(attr) 
-        return result as Json
+        return PagingSettings.createPagingSettingsFromAttributes(attr) 
     }
     /**
      * pager size

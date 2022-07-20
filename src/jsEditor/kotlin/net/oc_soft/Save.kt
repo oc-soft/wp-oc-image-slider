@@ -41,6 +41,7 @@ class Save {
                 val attrValue = when (attrValue0) {
                     is String ->  attrValue0
                     is Number ->  attrValue0.toString()
+                    is Boolean -> attrValue0.toString()
                     else -> null
                 }
                 val keyName = it
@@ -59,11 +60,6 @@ class Save {
                 
                 children0.forEach { +it }
 
-                div {
-                    className = csstype.ClassName("paging-setting")
-
-                    + window.btoa(JSON.stringify(net.oc_soft.paging.setting))
-                }
             }
         } 
     }
