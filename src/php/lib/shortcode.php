@@ -2,9 +2,9 @@
 
 
 /**
- *  oc slide shortcode
+ *  oc image slider shortcode
  */
-class OcSlideShortcode {
+class OcImageSliderShortcode {
 
     /**
      * shortcode instance
@@ -121,6 +121,6 @@ class OcSlideShortcode {
     }
 }
 
-OcSlideShortcode::$instance = new OcSlideShortcode;
+OcImageSliderShortcode::$instance = new OcImageSliderShortcode;
 
 // vi: se ts=4 sw=4 et:

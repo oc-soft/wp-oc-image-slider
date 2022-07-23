@@ -16,7 +16,7 @@
 
 /**
  * @PLUGIN_NAME@
- * Plugin URI: https://oc-soft.net/en/oc-slide/
+ * Plugin URI: https://oc-soft.net/en/oc-image-slider/
  * @DESCRIPTION@
  * @AUTHOR@
  * @VERSION@
@@ -27,27 +27,27 @@
  */
 
 require_once implode('/', [
-    plugin_dir_path( __FILE__), 'lib', 'oc-slide.php']);
+    plugin_dir_path( __FILE__), 'lib', 'oc-image-slider.php']);
 /**
  * activate plugin
  */
-function oc_slide_activate() {
+function oc_image_slider_activate() {
 
-    OcSlide::$instance->activate();
+    OcImageSlider::$instance->activate();
 }
 
 /**
  * deactivate plugin
  */
-function oc_slide_deactivate() {
-    OcSlide::$instance->deactivate();
+function oc_image_slider_deactivate() {
+    OcImageSlider::$instance->deactivate();
 }
 
 
 
-register_activation_hook(__FILE__, 'oc_slide_activate');
-register_deactivation_hook(__FILE__, 'oc_slide_deactivate');
-OcSlide::$instance->run(
+register_activation_hook(__FILE__, 'oc_image_slider_activate');
+register_deactivation_hook(__FILE__, 'oc_image_slider_deactivate');
+OcImageSlider::$instance->run(
     implode('', [plugin_dir_url(__FILE__), 'js']),
     implode('', [plugin_dir_url(__FILE__), 'css']),
     plugin_dir_path(__FILE__),

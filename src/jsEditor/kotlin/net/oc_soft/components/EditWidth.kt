@@ -66,11 +66,11 @@ class EditWidth  {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Width", 
-                    "oc-slide")
+                    "oc-image-slider")
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Use fixed values", "oc-slide")
+                        "Use fixed values", "oc-image-slider")
                     checked = (attributes["page-width-option"] as Int) != 0
                     onChange = {
                         val obj: dynamic = object {}
@@ -80,7 +80,8 @@ class EditWidth  {
                 }
 
                 wordpress.components.RangeControl {
-                    label = wordpress.i18n.gettext("Relative", "oc-slide") 
+                    label = wordpress.i18n.gettext(
+                        "Relative", "oc-image-slider") 
                     value = (attributes["page-width-relative"] as Number)
                     min = 0
                     max = 100

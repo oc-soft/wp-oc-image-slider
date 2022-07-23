@@ -35,12 +35,12 @@ class EditHeight {
 
                 title = wordpress.i18n.gettext(
                     "Height", 
-                    "oc-slide")
+                    "oc-image-slider")
 
                 wordpress.components.ToggleControl {
 
                     label = wordpress.i18n.gettext(
-                        "Use fixed values", "oc-slide")
+                        "Use fixed values", "oc-image-slider")
                     checked = (attributes["page-height-option"] as Int) != 0 
                     onChange = {
                         val obj: dynamic = object {}
@@ -58,7 +58,7 @@ class EditHeight {
                 wordpress.components.PanelRow {
                     wordpress.components.Button {
                         text = wordpress.i18n.gettext(
-                            "Auto Fill", "oc-slide")
+                            "Auto Fill", "oc-image-slider")
                         className = "oc-command-button"
 
                         variant = "secondary" 

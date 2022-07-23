@@ -37,7 +37,7 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Effect type",
-                    "oc-slide")
+                    "oc-image-slider")
                 + createEffectSelector(attributes, setAttributes)
             }
             + createFadeControl(attributes, setAttributes)
@@ -77,7 +77,7 @@ class ImageEffect {
                         @JsName("label")
                         var label =  
                             wordpress.i18n.gettext(
-                                "Fade", "oc-slide")
+                                "Fade", "oc-image-slider")
                         @JsName("value")
                         var value = "fade"
                     },
@@ -85,7 +85,7 @@ class ImageEffect {
                         @JsName("label")
                         var label =  
                             wordpress.i18n.gettext(
-                                "Slide", "oc-slide")
+                                "Slide", "oc-image-slider")
                         @JsName("value")
                         var value = "slide"
                     },
@@ -93,7 +93,7 @@ class ImageEffect {
                         @JsName("label")
                         var label =  
                             wordpress.i18n.gettext(
-                                "Push", "oc-slide")
+                                "Push", "oc-image-slider")
                         @JsName("value")
                         var value = "push"
                     },
@@ -101,7 +101,7 @@ class ImageEffect {
                         @JsName("label")
                         var label =  
                             wordpress.i18n.gettext(
-                                "Rectangles", "oc-slide")
+                                "Rectangles", "oc-image-slider")
                         @JsName("value")
                         var value = "rect"
                     },
@@ -109,7 +109,7 @@ class ImageEffect {
                         @JsName("label")
                         var label =  
                             wordpress.i18n.gettext(
-                                "Squares", "oc-slide")
+                                "Squares", "oc-image-slider")
                         @JsName("value")
                         var value = "square"
                     },
@@ -117,7 +117,7 @@ class ImageEffect {
                         @JsName("label")
                         var label =  
                             wordpress.i18n.gettext(
-                                "Turning", "oc-slide")
+                                "Turning", "oc-image-slider")
                         @JsName("value")
                         var value = "turning"
                     }
@@ -316,10 +316,10 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Fade",
-                    "oc-slide")
+                    "oc-image-slider")
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration (msec)", "oc-slide")
+                        "Duration (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr) 
 
@@ -359,10 +359,10 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Slide",
-                    "oc-slide")
+                    "oc-image-slider")
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration (msec)", "oc-slide")
+                        "Duration (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr) 
 
@@ -403,10 +403,10 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Push",
-                    "oc-slide")
+                    "oc-image-slider")
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration (msec)", "oc-slide")
+                        "Duration (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr) 
 
@@ -558,10 +558,10 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Retangles",
-                    "oc-slide")
+                    "oc-image-slider")
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Rows", "oc-slide")
+                        "Rows", "oc-image-slider")
 
                     Object.assign(this, additionalAttr1) 
 
@@ -571,7 +571,7 @@ class ImageEffect {
                 } 
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Columns", "oc-slide")
+                        "Columns", "oc-image-slider")
 
                     Object.assign(this, additionalAttr1) 
 
@@ -583,41 +583,41 @@ class ImageEffect {
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Column as major", "oc-slide")
+                        "Column as major", "oc-image-slider")
                     onChange = handleColumnMajor
                     checked = columnAsMajor
                 }
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Reverse major", "oc-slide")
+                        "Reverse major", "oc-image-slider")
                     onChange = handleReverseMajor
                     checked = reverseMajor
                 } 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Reverse minor", "oc-slide")
+                        "Reverse minor", "oc-image-slider")
                     onChange = handleReverseMinor
                     checked = reverseMinor
                 }
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Fragment right to left", "oc-slide")
+                        "Fragment right to left", "oc-image-slider")
                     onChange = handleFragmentRToL
                     checked = fragmentRToL 
                 }
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Fragment bottom to top", "oc-slide")
+                        "Fragment bottom to top", "oc-image-slider")
                     onChange = handleFragmentBToT
                     checked = fragmentBToT 
                 }
 
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration 1 (msec)", "oc-slide")
+                        "Duration 1 (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr2) 
 
@@ -627,7 +627,7 @@ class ImageEffect {
                 } 
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration 2 (msec)", "oc-slide")
+                        "Duration 2 (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr2) 
 
@@ -772,10 +772,10 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Squares",
-                    "oc-slide")
+                    "oc-image-slider")
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Size", "oc-slide")
+                        "Size", "oc-image-slider")
 
                     Object.assign(this, additionalAttr1) 
 
@@ -785,40 +785,40 @@ class ImageEffect {
                 }
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Column as major", "oc-slide")
+                        "Column as major", "oc-image-slider")
                     onChange = handleColumnMajor
                     checked = columnAsMajor
                 }
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Reverse major", "oc-slide")
+                        "Reverse major", "oc-image-slider")
                     onChange = handleReverseMajor
                     checked = reverseMajor
                 } 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Reverse minor", "oc-slide")
+                        "Reverse minor", "oc-image-slider")
                     onChange = handleReverseMinor
                     checked = reverseMinor
                 }
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Fragment right to left", "oc-slide")
+                        "Fragment right to left", "oc-image-slider")
                     onChange = handleFragmentRToL
                     checked = fragmentRToL 
                 }
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Fragment bottom to top", "oc-slide")
+                        "Fragment bottom to top", "oc-image-slider")
                     onChange = handleFragmentBToT
                     checked = fragmentBToT 
                 }
 
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration 1 (msec)", "oc-slide")
+                        "Duration 1 (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr2) 
 
@@ -828,7 +828,7 @@ class ImageEffect {
                 } 
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration 2 (msec)", "oc-slide")
+                        "Duration 2 (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr2) 
 
@@ -869,10 +869,10 @@ class ImageEffect {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Turning",
-                    "oc-slide")
+                    "oc-image-slider")
                 wordpress.components.TextControl {
                     label = wordpress.i18n.gettext(
-                        "Duration (msec)", "oc-slide")
+                        "Duration (msec)", "oc-image-slider")
 
                     Object.assign(this, additionalAttr) 
 

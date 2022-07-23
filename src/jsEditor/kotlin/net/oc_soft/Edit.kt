@@ -177,7 +177,7 @@ class Edit {
                             @JsName("label") 
                             val label = wordpress.i18n.gettext(
                                 "Page Color",
-                                "oc-slide")
+                                "oc-image-slider")
                         },
                         object {
                             @JsName("value")
@@ -192,7 +192,7 @@ class Edit {
                             @JsName("label") 
                             val label = wordpress.i18n.gettext(
                                 "Control Color 1",
-                                "oc-slide")
+                                "oc-image-slider")
                         },
                         object {
                             @JsName("value")
@@ -207,7 +207,7 @@ class Edit {
                             @JsName("label") 
                             val label = wordpress.i18n.gettext(
                                 "Control Color 2",
-                                "oc-slide")
+                                "oc-image-slider")
                         }
 
                     ) 
@@ -216,7 +216,7 @@ class Edit {
 
                     enableAlpha = true
                     title = wordpress.i18n.gettext(
-                        "Color", "oc-slide")
+                        "Color", "oc-image-slider")
                 }
 
                 + imageEffect(attr, setAttr)
@@ -298,7 +298,7 @@ class Edit {
                     labels = object {
                         @JsName("title")
                         val title = wordpress.i18n.gettext(
-                            "Images", "oc-slide")
+                            "Images", "oc-image-slider")
                         @JsName("instrructions")
                         val instructions = instructions
                     }

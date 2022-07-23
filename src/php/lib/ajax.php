@@ -3,7 +3,7 @@
 /**
  *  ajax handler 
  */
-class OcSlideAjax {
+class OcImageSliderAjax {
 
     /**
      * ajax handler
@@ -36,6 +36,6 @@ class OcSlideAjax {
     }
 }
 
-OcSlideAjax::$instance = new OcSlideAjax;
+OcImageSliderAjax::$instance = new OcImageSliderAjax;
 
 // vi: se ts=4 sw=4 et:

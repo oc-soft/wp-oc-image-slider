@@ -160,7 +160,7 @@ kotlin {
         jsCommon {
             dependencies {
                 implementation kotlin('stdlib-js')
-                implementation project(':oc-slide-image')
+                implementation project(':oc-image-slider-core')
                 implementation kotlinw('css', '1.0.0-pre.345')
                 implementation kotlinw('js', '1.0.0-pre.353')
                 implementation kotlinw('browser', '0.0.1-pre.345')
@@ -622,7 +622,7 @@ task xgettext {
         include 'php/**/*.php'
         include 'php/**/*.sh'
     } 
-    def output = file('src/i18n/oc-slide.pot')
+    def output = file('src/i18n/oc-image-slider.pot')
     outputs.files output
     srcTree.forEach {
         inputs.files it
@@ -672,7 +672,7 @@ task msgmerge {
         outputs.files it
     }
 
-    def potFile = file('src/i18n/oc-slide.pot')
+    def potFile = file('src/i18n/oc-image-slider.pot')
     inputs.files potFile
 
     doLast {
@@ -702,8 +702,8 @@ task msgfmt {
         def langName = it.parentFile.name
         ioParams << [
             it, 
-            file("src/i18n/oc-slide-${langName}.mo"),
-            'oc-slide',
+            file("src/i18n/oc-image-slider-${langName}.mo"),
+            'oc-image-slider',
             langName
         ]
     }
@@ -998,11 +998,13 @@ task copyAssetsIntoSiteImage {
     description = 'copy assets into site image'
 
     def imageNames = [
-        'enable-oc-smart-table-free-edition.png',
-        'small-width-browser-view-smart-table.png',
-        'desktop-browser-view-smart-table.png',
-        'inheritance-colors-and-styles.png',
-        'oc-smart-table-extended-menu-item.png'
+        'edit-slides.png',
+        'fade.png',
+        'slide.png',
+        'push.png',
+        'rectangles.png',
+        'squares.png',
+        'turning.pnp'
     ]
 
     def inputFiles = fileTree('src/assets') {
@@ -1085,7 +1087,7 @@ buildSiteImage.dependsOn copyConfigIntoSiteImage
 buildSiteImage.dependsOn copyReadmeIntoSiteImage
 buildSiteImage.dependsOn copyAssetsIntoSiteImage
 buildSiteImage.dependsOn compileSass
-// buildSiteImage.dependsOn copyMoIntoSiteImage
+buildSiteImage.dependsOn copyMoIntoSiteImage
 buildSiteImage.dependsOn copyBlockJsonIntoSiteImage
 
 /**

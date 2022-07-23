@@ -32,7 +32,7 @@ class PagingControl {
             wordpress.components.PanelBody {
                 title = wordpress.i18n.gettext(
                     "Paging", 
-                    "oc-slide")
+                    "oc-image-slider")
                 
                 wordpress.components.TextControl {
                     Object.assign(this, object {
@@ -41,7 +41,7 @@ class PagingControl {
                     })
                     label = wordpress.i18n.gettext(
                         "Stop Duration (msec)",
-                        "oc-slide")
+                        "oc-image-slider")
                     value = duration
                     onChange = handleChangeDuration
                     type = "number"
@@ -50,7 +50,7 @@ class PagingControl {
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Auto paging", "oc-slide")
+                        "Auto paging", "oc-image-slider")
                     checked = (attributes["paging-control-auto"] as Int) != 0
                     onChange = {
                         val obj: dynamic = object {}
@@ -60,7 +60,7 @@ class PagingControl {
                 }
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Endless", "oc-slide")
+                        "Endless", "oc-image-slider")
                     checked = (attributes["paging-control-loop"] as Int) != 0
                     onChange = {
                         val obj: dynamic = object {}
@@ -73,7 +73,7 @@ class PagingControl {
 
                 wordpress.components.ToggleControl {
                     label = wordpress.i18n.gettext(
-                        "Auto backward", "oc-slide")
+                        "Auto backward", "oc-image-slider")
                     val autoDir = attributes[
                         "paging-control-auto-direction"] as Number 
                     checked = (autoDir.toInt()) != 0

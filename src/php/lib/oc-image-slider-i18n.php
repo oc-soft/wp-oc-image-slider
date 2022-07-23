@@ -18,7 +18,7 @@
 /**
  *  internationalization handler 
  */
-class OcSlideI18n {
+class OcImageSliderI18n {
 
     /**
      *  i18n object 
@@ -87,6 +87,6 @@ class OcSlideI18n {
     }
 }
 
-OcSlideI18n::$instance = new OcSlideI18n;
+OcImageSliderI18n::$instance = new OcImageSliderI18n;
 
 // vi: se ts=4 sw=4 et:

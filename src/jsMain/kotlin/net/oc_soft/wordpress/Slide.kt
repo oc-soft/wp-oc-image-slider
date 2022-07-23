@@ -36,7 +36,8 @@ class Slide {
      */
     val slideContainers: Array<HTMLElement>
         get() {
-            val elems0 = document.querySelectorAll("div.wp-block-oc-soft-slide")
+            val elems0 = document.querySelectorAll(
+                "div.wp-block-oc-soft-image-slider")
             
             val elems = ArrayList<HTMLElement>()
 

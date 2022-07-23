@@ -19,9 +19,9 @@ require_once implode(DIRECTORY_SEPARATOR, [__DIR__, 'ajax.php']);
 
 
 /**
- * slide application
+ * image slider application
  */
-class OcSlide {
+class OcImageSlider {
 
 
     /**
@@ -48,9 +48,9 @@ class OcSlide {
     function get_ajax_inline_script() {
         $ajax_url = admin_url('admin-ajax.php');
         $result = "window.oc = window.oc || { }\n"
-            . "window.oc.slide = window.oc.slide || {}\n"
-            . "window.oc.slide.ajax = window.oc.slide.ajax || { }\n"
-            . "window.oc.slide.ajax.url = '$ajax_url'";
+            . "window.oc.slider = window.oc.slider || {}\n"
+            . "window.oc.slider.ajax = window.oc.slider.ajax || { }\n"
+            . "window.oc.slider.ajax.url = '$ajax_url'";
         return $result;
     }
 
@@ -90,7 +90,7 @@ class OcSlide {
         /*
         wp_set_script_translations(
             self::$script_handle, 
-            'oc-slide', 
+            'oc-image-slider', 
             $translations_dir);
          */
     }
@@ -160,13 +160,13 @@ class OcSlide {
                 $js_dir, $translations_dir, $registration);
         });
 
-        add_shortcode('ocslide', 
+        add_shortcode('ocslider', 
             function($attr, $contents, $tag) use($plugin_dir) {
-                return OcSlideShortcode::$instance->handle_shortcode(
+                return OcImageSliderShortcode::$instance->handle_shortcode(
                     $attr, $contents, $tag, $plugin_dir);
             });
 
-        OcSlideAjax::$instance->register($plugin_dir);
+        OcImageSliderAjax::$instance->register($plugin_dir);
     }
 
 
@@ -188,6 +188,6 @@ class OcSlide {
     }
 }
 
-OcSlide::$instance = new OcSlide;
+OcImageSlider::$instance = new OcImageSlider;
 
 // vi: se ts=4 sw=4 et:
