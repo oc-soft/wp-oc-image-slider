@@ -1,3 +1,17 @@
+/*
+ * Copyright 2022 oc-soft
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 plugins {
     id 'org.jetbrains.kotlin.multiplatform' 
     id 'io.miret.etienne.sass' version '1.1.2'
@@ -120,6 +134,8 @@ ext.dceDir = browserClass.DCE_DIR
 ext.dceDevDir = browserClass.DCE_DEV_DIR
 
 
+apply from: 'block-json.gradle' 
+
 
 /**
  * get application names without default entry
@@ -198,7 +214,7 @@ kotlin {
 
                 implementation npm('react', '>=18.0.0')
                 implementation npm('react-dom', '>=18.0.0')
-                implementation project(':kwp')
+                implementation project(':ktwp')
 
             }
         }
@@ -510,10 +526,14 @@ task generateBlockJson {
     def outputFile = file('src/assets/block.json')
 
     inputs.file inputFile
+    inputs.file 'block-json.gradle'
     outputs.file outputFile
+    
     
     doLast {
         
+        
+
         def slurper = new groovy.json.JsonSlurper()
         def block = slurper.parseText(inputFile.text)
         appNames.each {
@@ -530,6 +550,10 @@ task generateBlockJson {
                     "file:css/${value['out-name']}.css"
             }
         }
+        block['keywords'] = getBlockJsonKeywords()
+        block['title'] = getBlockJsonTitle()
+        block['description'] =  getBlockJsonDescription()
+        
         def jsonGenerator = new groovy.json.JsonGenerator.Options()
             .build()
             
@@ -628,12 +652,13 @@ task xgettext {
         inputs.files it
         potSources << [ it ]
     }
+    potSources << ['block-json.gradle']
 
     doLast {
         exec {
             executable = 'xgettext'
             args '-o', output 
-            args '-k__'
+            args '-k__', '-kgetTranslation'
             potSources.each {
                 args it[0]
             }
@@ -1051,6 +1076,35 @@ task copyAssetsIntoSiteImage {
 }
 
 /**
+ * copy assets image files into site image
+ */
+task copyAssetsImgIntoSiteImage {
+    description = 'copy assets image files into site image'
+
+
+    def inputFiles = fileTree('src/assets/img') {
+        include '*.jpg' 
+        include '*.json'
+    }
+
+    def destDir = file("build/${siteSetting['targetDirectory']}/assets/img")
+    inputFiles.forEach {
+        inputs.files it
+        outputs.files new File(destDir, it.name)
+    }
+
+    doLast {
+        copy {
+            inputFiles.forEach {
+                from it
+            }
+            into destDir
+        }
+    }   
+}
+
+
+/**
  * copy the block setting file(block.json) into site image
  */
 task copyBlockJsonIntoSiteImage {
@@ -1086,6 +1140,7 @@ buildSiteImage.dependsOn copyJsAssetsPhpIntoSiteImage
 buildSiteImage.dependsOn copyConfigIntoSiteImage
 buildSiteImage.dependsOn copyReadmeIntoSiteImage
 buildSiteImage.dependsOn copyAssetsIntoSiteImage
+buildSiteImage.dependsOn copyAssetsImgIntoSiteImage
 buildSiteImage.dependsOn compileSass
 buildSiteImage.dependsOn copyMoIntoSiteImage
 buildSiteImage.dependsOn copyBlockJsonIntoSiteImage
@@ -1284,5 +1339,46 @@ task genSvgPathDJs {
 
 jsBrowserDevelopmentWebpack.dependsOn genSvgPathDJs
 jsBrowserProductionWebpack.dependsOn genSvgPathDJs
+
+
+/**
+ * generate example assets json
+ */
+task genExampleImageAssetsJson {
+
+
+    def imgTree = fileTree('src/assets/img') {
+        include '*.jpg'
+    }
+    def outputFile = file('src/assets/img/img.json')
+
+    imgTree.forEach {
+        inputs.file it
+    }
+    
+    outputs.file outputFile
+
+    doLast {
+        def assets = [] 
+        imgTree.forEach {
+            def bufImg = javax.imageio.ImageIO.read(it)
+            def height = bufImg.height
+            def width = bufImg.width
+
+            assets << [
+                'name': it.name,
+                'width': width,
+                'height': height,
+                'id': java.util.UUID.randomUUID().toString()
+            ]    
+        }
+        def jsonGenerator = new groovy.json.JsonGenerator.Options().build()
+        def jsonAssets = groovy.json.JsonOutput.prettyPrint(
+            jsonGenerator.toJson(assets))
+        outputFile.text = jsonAssets
+    }
+}
+
+copyAssetsImgIntoSiteImage.dependsOn genExampleImageAssetsJson
 
 // vi: se ts=4 sw=4 et:

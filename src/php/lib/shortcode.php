@@ -46,11 +46,7 @@ class OcImageSliderShortcode {
         
         $contents = $this->decode_contents($contents);
         
-        error_log(print_r($contents, true));
-
         $params = json_decode($contents, true);
-
-        error_log(print_r($params, true));
 
         $tmpl_contents = '';        
         if (isset($params['img-contents'])) {
@@ -101,7 +97,7 @@ class OcImageSliderShortcode {
         if (strlen($style_str)) {
             $style_str = "style=\"$style_str\"";
         }
-        $result = "<div class=\"oc-slide $classes\" $style_str>"
+        $result = "<div class=\"oc-slider $classes\" $style_str>"
             . "<template class=\"pages\">"
             . "$tmpl_contents"
             . "</template>"

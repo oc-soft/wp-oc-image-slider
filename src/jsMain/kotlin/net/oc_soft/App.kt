@@ -26,7 +26,7 @@ class App {
      */
     val slideContainers: Array<HTMLElement>
         get() {
-            val elems = document.querySelectorAll(".oc-slide")
+            val elems = document.querySelectorAll(".oc-slider")
             return Array<HTMLElement>(elems.length) {
                 elems[it] as HTMLElement
             }

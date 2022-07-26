@@ -55,6 +55,32 @@ class OcImageSlider {
     }
 
     /**
+     * get inline script for editor
+     */
+    function get_editor_inline_script(
+        $plugin_dir,
+        $plugin_dir_url) {
+
+        $img_rel_dir = [ 'assets', 'img' ];
+        $img_data = file_get_contents(
+            implode(DIRECTORY_SEPARATOR, 
+            array_merge(
+                [$plugin_dir], $img_rel_dir, ['img.json'])));
+
+        $images = json_decode($img_data, true);
+        foreach ($images as &$img) {
+            $img['url'] = implode('/', 
+                array_merge([$plugin_dir_url], $img_rel_dir, [$img['name']])); 
+
+        }
+        $examples_data = json_encode($images);
+        $result = "window.oc = window.oc || { }\n"
+            . "window.oc.slider = window.oc.slider || {}\n"
+            . "window.oc.slider.example = ${examples_data}\n";
+        return $result;
+     }
+
+    /**
      * get support size query
      */
     function get_support_size_query() {
@@ -87,12 +113,8 @@ class OcImageSlider {
         if (!is_admin()) {
             wp_enqueue_script($registration->view_script);
         }
-        /*
-        wp_set_script_translations(
-            self::$script_handle, 
-            'oc-image-slider', 
-            $translations_dir);
-         */
+
+        
     }
 
     /**
@@ -105,18 +127,33 @@ class OcImageSlider {
     /**
      * setup block editor scripts script
      */
-    function setup_block_editor_scripts($js_dir,
+    function setup_block_editor_scripts(
+        $js_dir,
         $translations_dir,
+        $plugin_dir,
+        $plugin_dir_url,
         $registration) {
 
         wp_enqueue_script(
             $registration->editor_script);
+
+
+        wp_add_inline_script(
+            $registration->editor_script,
+            $this->get_editor_inline_script($plugin_dir, $plugin_dir_url));
+
 
         wp_enqueue_style(
             $registration->editor_style);
 
         wp_enqueue_style(
             $registration->style);
+
+        $state = wp_set_script_translations(
+            $registration->editor_script, 
+            'oc-image-slider', 
+            $translations_dir);
+
     }
 
     /**
@@ -136,7 +173,13 @@ class OcImageSlider {
         $js_dir,
         $css_dir,
         $translations_dir,
-        $plugin_dir) {
+        $plugin_dir,
+        $plugin_dir_url) {
+
+
+        load_plugin_textdomain('oc-image-slider', 
+            false, 'oc-image-slider');
+
 
         $registration = register_block_type($plugin_dir, [
             'render_callback' => [$this, 'render_block']
@@ -155,9 +198,12 @@ class OcImageSlider {
                 $registration);
         });
         add_action('enqueue_block_editor_assets', function() 
-            use($js_dir, $translations_dir, $registration) {
+            use($js_dir, $translations_dir,
+                $plugin_dir, $plugin_dir_url, $registration) {
             $this->setup_block_editor_scripts(
-                $js_dir, $translations_dir, $registration);
+                $js_dir, $translations_dir,
+                $plugin_dir, $plugin_dir_url,
+                $registration);
         });
 
         add_shortcode('ocslider', 
@@ -179,11 +225,14 @@ class OcImageSlider {
         $js_dir,
         $css_dir,
         $translations_dir,
-        $plugin_dir) {
+        $plugin_dir,
+        $plugin_dir_url) {
 
         add_action('init', function() 
-            use($js_dir, $css_dir, $translations_dir, $plugin_dir) {
-            $this->on_init($js_dir, $css_dir, $translations_dir, $plugin_dir);
+            use($js_dir, $css_dir, 
+                $translations_dir, $plugin_dir, $plugin_dir_url) {
+            $this->on_init($js_dir, $css_dir, 
+                $translations_dir, $plugin_dir, $plugin_dir_url);
         });
     }
 }

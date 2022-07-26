@@ -3,7 +3,7 @@
   "apiVersion": 2,
   "name": "oc-soft/image-slider",
   "version": "0.1.0",
-  "title": "Slide",
+  "title": "Image Slider",
   "description": "You can create a frame changing contents every few seconds",
   "supports": {
     "html": false
@@ -381,7 +381,7 @@
       "default": 100
     }
   },
-  "textdomain": "oc-slide",
+  "textdomain": "oc-image-slider",
   "editorStyle": "css/editor.css",
   "style": "css/index.css",
   "__comments": [

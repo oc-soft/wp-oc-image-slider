@@ -75,6 +75,7 @@ requires_php=$(cat ${assetsdir}/requires-php.txt)
 requires_wp=$(cat ${assetsdir}/requires-wp.txt)
 
 sed -e "s/@PLUGIN_NAME@/Plugin\ Name:\ $plugin_name/" \
+  -e "s/@PLUGIN_NAME_1@/$plugin_name/" \
   -e "s/@AUTHOR@/Author:\ $author_value/" \
   -e "s/@DESCRIPTION@/Description:\ $desc_value/" \
   -e "s/@VERSION@/Version:\ $version_value/" \

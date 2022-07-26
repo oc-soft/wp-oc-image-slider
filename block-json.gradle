@@ -13,20 +13,31 @@
  * limitations under the License.
  */
 
-package net.oc_soft.px
-
-/**
- * int object to px string
- */
-fun Int.toPx(): String {
-    return "${this}px"
+def dpgettext(def domain, def ctxt, def str) {
+    return str
 }
 
-/**
- * px string to int
- */
-fun String.pxToInt(): Int {
-    return take(indexOf("px")).toInt()
+
+project.ext.getBlockJsonDescription = {
+    dpgettext(
+        "oc-image-slider",
+        "block description",
+        "You can create a frame changing contents every few seconds")
+}
+
+project.ext.getBlockJsonTitle = {
+    dpgettext(
+        "oc-image-slider",
+        "block title",
+        "Image Slider")
+}
+
+
+project.ext.getBlockJsonKeywords = {
+    dpgettext(
+        "oc-image-slider",
+        "block keyword",
+        "slides, images, slider, image, block, editor")
 }
 
 // vi: se ts=4 sw=4 et:

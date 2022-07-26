@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 oc-soft
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.oc_soft
 
 import kotlinx.browser.window
@@ -20,7 +35,11 @@ class App(
     /**
      * save block
      */
-    val save: Save = Save()) {
+    val save: Save = Save(),
+    /**
+     * example object
+     */
+    val example: Example = Example()) {
 
 
     /**
@@ -32,18 +51,20 @@ class App(
         // register block editor 
         
         wordpress.blocks.registerBlockType(
-            net.oc_soft.block.name,
-            net.oc_soft.block.createMeta(
-                object {
-                    @JsName("icon")
-                    val icon = Icons.blockEditor
+            net.oc_soft.block.meta,
+            object {
+                @JsName("icon")
+                val icon = Icons.blockEditor
 
-                    @JsName("edit")
-                    val edit: (Any)->react.ReactElement<*> = { app.edit(it) }
+                @JsName("example")
+                val example = app.example()
 
-                    @JsName("save")
-                    val save: (Any)->react.ReactElement<*> = { app.save(it) }
-                }))
+                @JsName("edit")
+                val edit: (Any)->react.ReactElement<*> = { app.edit(it) }
+
+                @JsName("save")
+                val save: (Any)->react.ReactElement<*> = { app.save(it) }
+            })
     }
 
     /**
