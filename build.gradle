@@ -800,8 +800,8 @@ task copyMoIntoSiteImage  {
 }
 
 
-// copyJsIntoSiteImage.dependsOn jsBrowserWebpack
-copyJsIntoSiteImage.dependsOn jsBrowserDevelopmentWebpack
+copyJsIntoSiteImage.dependsOn jsBrowserWebpack
+// copyJsIntoSiteImage.dependsOn jsBrowserDevelopmentWebpack
 
 
 
