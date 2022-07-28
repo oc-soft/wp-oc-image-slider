@@ -70,16 +70,7 @@ class EditHeight {
                     "page-height-aspect-1",
                     "page-height-aspect-2")
 
-                wordpress.components.PanelRow {
-                    wordpress.components.Button {
-                        text = wordpress.i18n.gettext(
-                            "Auto Fill", "oc-image-slider")
-                        className = "oc-command-button"
-
-                        variant = "secondary" 
-                        isSmall = true
-                    }
-                }
+                
                 wordpress.components.Divider {
                 }
 

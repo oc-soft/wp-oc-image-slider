@@ -206,12 +206,6 @@ class OcImageSlider {
                 $registration);
         });
 
-        add_shortcode('ocslider', 
-            function($attr, $contents, $tag) use($plugin_dir) {
-                return OcImageSliderShortcode::$instance->handle_shortcode(
-                    $attr, $contents, $tag, $plugin_dir);
-            });
-
         OcImageSliderAjax::$instance->register($plugin_dir);
     }
 
