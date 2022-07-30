@@ -3,6 +3,10 @@ function create_name_json_list() {
     local prefix=$1
     local file=$2
     awk -v pfx=$prefix -f - $file <<'EOT'
+    BEGIN {
+        delete elements
+        delete paths
+    }
     {
         split($1, elm, "/")
         if (length(elm)) {
